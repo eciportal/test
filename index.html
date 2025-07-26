@@ -51,6 +51,39 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        /* Styles for the custom alert modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+        .modal-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            transform: scale(0.9);
+            transition: transform 0.3s;
+        }
+        .modal-overlay.visible .modal-content {
+            transform: scale(1);
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -534,6 +567,18 @@
     <!-- Hidden iframe for Google Form submission -->
     <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
 
+    <!-- NEW: Custom Alert Modal HTML -->
+    <div id="custom-alert" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="custom-alert-title" class="text-xl font-bold mb-4 text-gray-800"></h3>
+            <p id="custom-alert-body" class="text-gray-600 mb-6"></p>
+            <button id="custom-alert-close" class="w-full bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700">
+                Close
+            </button>
+        </div>
+    </div>
+
+
     <!-- App Logic -->
     <script type="module">
         // --- PWA: Service Worker Registration ---
@@ -554,8 +599,8 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs, onSnapshot, updateDoc, getCountFromServer, Timestamp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
-        // --- Import Firebase Cloud Messaging ---
-        import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-messaging.js";
+        // --- Import Firebase Cloud Messaging (with onMessage) ---
+        import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-messaging.js";
 
 
         // --- Language Data ---
@@ -818,6 +863,23 @@
             // --- UI Elements ---
             const pages = document.querySelectorAll('.page');
             const navLinks = document.querySelectorAll('.nav-link');
+            
+            // --- Custom Alert Modal Logic ---
+            const customAlert = document.getElementById('custom-alert');
+            const customAlertTitle = document.getElementById('custom-alert-title');
+            const customAlertBody = document.getElementById('custom-alert-body');
+            const customAlertCloseBtn = document.getElementById('custom-alert-close');
+
+            function showCustomAlert(title, body) {
+                customAlertTitle.textContent = title;
+                customAlertBody.textContent = body;
+                customAlert.classList.add('visible');
+            }
+
+            function hideCustomAlert() {
+                customAlert.classList.remove('visible');
+            }
+            customAlertCloseBtn.addEventListener('click', hideCustomAlert);
             
             // --- Language Switcher Logic ---
             function renderLanguage(lang) {
@@ -1194,6 +1256,18 @@
                 }
             }
 
+            // --- NEW: Foreground Message Handler ---
+            function setupForegroundMessageHandler() {
+                onMessage(messaging, (payload) => {
+                    console.log('Foreground message received.', payload);
+                    const notificationTitle = payload.notification.title;
+                    const notificationBody = payload.notification.body;
+                    
+                    // Use the custom modal instead of a disruptive alert
+                    showCustomAlert(notificationTitle, notificationBody);
+                });
+            }
+
 
             function updateUIAfterLogin() {
                 document.getElementById('auth-links-desktop').classList.add('hidden');
@@ -1208,6 +1282,8 @@
                 requestNotificationPermission();
                 // Setup the real-time listener to display announcements on the page
                 setupAnnouncementsListener();
+                // Setup the foreground message handler to show popups
+                setupForegroundMessageHandler();
             }
 
             function updateUIAfterLogout() {
