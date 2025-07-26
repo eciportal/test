@@ -1,0 +1,22 @@
+{
+  "name": "Eklavya Coaching Institute",
+  "short_name": "Eklavya",
+  "description": "Join Eklavya Coaching Institute for excellence in studies from Class 6 to 12.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4f46e5",
+  "icons": [
+    {
+      "src": "https://placehold.co/192x192/4f46e5/ffffff?text=E",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://placehold.co/512x512/4f46e5/ffffff?text=Eklavya",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

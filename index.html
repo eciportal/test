@@ -1,0 +1,1567 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eklavya Coaching Institute</title>
+
+    <!-- PWA: Link to Manifest File -->
+    <link rel="manifest" href="manifest.json">
+    <!-- PWA: Theme Color for browser UI -->
+    <meta name="theme-color" content="#4f46e5">
+
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles for a clean, classic look */
+        body {
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .page {
+            display: none; /* Hide all pages by default */
+        }
+        .page.active {
+            display: block; /* Show only the active page */
+        }
+        main {
+            flex-grow: 1;
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4f46e5;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        .dashboard-tab-content {
+            display: none;
+        }
+        .dashboard-tab-content.active {
+            display: block;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <!-- Header -->
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
+            <div id="logo-container" class="flex items-center space-x-3 cursor-pointer">
+                <!-- Logo SVG -->
+                <svg class="h-8 w-8 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                </svg>
+                <div class="text-lg md:text-2xl font-bold text-indigo-600">
+                    <span data-lang-key="institute_name">Eklavya Coaching Institute</span>
+                </div>
+            </div>
+            
+            <!-- Desktop Navigation -->
+            <nav class="hidden md:flex space-x-6 items-center">
+                <a href="#" class="nav-link text-gray-600 hover:text-indigo-600" data-page="home"><span data-lang-key="nav_home">Home</span></a>
+                <a href="#" class="nav-link text-gray-600 hover:text-indigo-600" data-page="courses"><span data-lang-key="nav_courses">Courses</span></a>
+                <a href="#" class="nav-link text-gray-600 hover:text-indigo-600" data-page="about"><span data-lang-key="nav_about">About</span></a>
+                <a href="#" class="nav-link text-gray-600 hover:text-indigo-600" data-page="contact"><span data-lang-key="nav_contact">Contact</span></a>
+                <div id="auth-links-desktop" class="relative">
+                    <button id="student-dropdown-button" class="bg-indigo-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-indigo-700 transition duration-300 flex items-center">
+                        <span data-lang-key="nav_student">Student</span>
+                        <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div id="student-dropdown-menu" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 hidden">
+                        <a href="#" class="nav-link block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-page="login"><span data-lang-key="nav_signin">Sign In</span></a>
+                        <a href="#" class="nav-link block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-page="signup"><span data-lang-key="nav_signup">Sign Up</span></a>
+                    </div>
+                </div>
+                <div id="user-links-desktop" class="hidden items-center space-x-4">
+                     <span id="welcome-user-desktop" class="font-semibold"></span>
+                     <button id="logout-btn-desktop" class="bg-red-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-red-600 transition duration-300">
+                         <span data-lang-key="nav_logout">Logout</span>
+                     </button>
+                </div>
+                <!-- Install App Button -->
+                <button id="install-app-btn" class="hidden bg-green-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-green-600 transition duration-300">
+                    Install App
+                </button>
+                <!-- Language Switcher -->
+                <div class="flex items-center space-x-2 text-sm">
+                    <span>EN</span>
+                    <label for="language-toggle-desktop" class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" value="" id="language-toggle-desktop" class="sr-only peer language-toggle">
+                        <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                    </label>
+                    <span>HI</span>
+                </div>
+            </nav>
+
+            <!-- Mobile Menu Button -->
+            <div class="md:hidden">
+                <button id="mobile-menu-button">
+                    <svg id="menu-open-icon" class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                    </svg>
+                    <svg id="menu-close-icon" class="h-6 w-6 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Navigation Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t">
+            <nav class="flex flex-col items-center space-y-4 py-4">
+                <a href="#" class="nav-link text-gray-600 hover:text-indigo-600" data-page="home"><span data-lang-key="nav_home">Home</span></a>
+                <a href="#" class="nav-link text-gray-600 hover:text-indigo-600" data-page="courses"><span data-lang-key="nav_courses">Courses</span></a>
+                <a href="#" class="nav-link text-gray-600 hover:text-indigo-600" data-page="about"><span data-lang-key="nav_about">About</span></a>
+                <a href="#" class="nav-link text-gray-600 hover:text-indigo-600" data-page="contact"><span data-lang-key="nav_contact">Contact</span></a>
+                <div id="auth-links-mobile" class="w-full flex flex-col items-center space-y-2 px-4">
+                    <button class="nav-link w-full bg-indigo-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-indigo-700 transition duration-300" data-page="login">
+                        <span data-lang-key="nav_signin">Sign In</span>
+                    </button>
+                    <button class="nav-link w-full bg-gray-200 text-gray-800 font-semibold px-4 py-2 rounded-lg hover:bg-gray-300 transition duration-300" data-page="signup">
+                        <span data-lang-key="nav_signup">Sign Up</span>
+                    </button>
+                </div>
+                <div id="user-links-mobile" class="hidden w-full flex flex-col items-center space-y-2 px-4">
+                    <span id="welcome-user-mobile" class="font-semibold text-center py-2"></span>
+                    <button id="logout-btn-mobile" class="w-full bg-red-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-red-600 transition duration-300">
+                        <span data-lang-key="nav_logout">Logout</span>
+                    </button>
+                </div>
+                 <!-- Language Switcher Mobile -->
+                <div class="flex items-center space-x-2 text-sm pt-2">
+                    <span>EN</span>
+                    <label for="language-toggle-mobile" class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" value="" id="language-toggle-mobile" class="sr-only peer language-toggle">
+                        <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                    </label>
+                    <span>HI</span>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main>
+        <!-- Home Page -->
+        <div id="page-home" class="page active">
+             <section class="bg-indigo-600 text-white">
+                <div class="container mx-auto px-4 sm:px-6 py-20 text-center">
+                    <h1 class="text-4xl md:text-5xl font-bold leading-tight mb-4"><span data-lang-key="home_title">A Foundation for Success</span></h1>
+                    <p class="text-lg md:text-xl mb-8"><span data-lang-key="home_subtitle">Join Eklavya Coaching Institute for excellence in studies from Class 6 to 12.</span></p>
+                    <button class="nav-link bg-white text-indigo-600 font-bold py-3 px-6 rounded-full hover:bg-gray-200 transition duration-300" data-page="contact">
+                        <span data-lang-key="home_demo_button">Take a Demo Class</span>
+                    </button>
+                </div>
+            </section>
+            <section class="py-12 md:py-16">
+                <div class="container mx-auto px-4 sm:px-6">
+                    <h2 class="text-3xl font-bold text-center mb-12"><span data-lang-key="why_us_title">Why Choose Us?</span></h2>
+                    <div class="grid md:grid-cols-3 gap-8 text-center">
+                        <div class="p-6 bg-white rounded-lg shadow-lg">
+                            <h3 class="text-xl font-semibold mb-2"><span data-lang-key="why_us_1_title">Expert Faculty</span></h3>
+                            <p class="text-gray-600"><span data-lang-key="why_us_1_desc">Learn from the best minds in the industry with years of teaching experience.</span></p>
+                        </div>
+                        <div class="p-6 bg-white rounded-lg shadow-lg">
+                            <h3 class="text-xl font-semibold mb-2"><span data-lang-key="why_us_2_title">Comprehensive Material</span></h3>
+                            <p class="text-gray-600"><span data-lang-key="why_us_2_desc">Get access to well-researched and up-to-date study materials.</span></p>
+                        </div>
+                        <div class="p-6 bg-white rounded-lg shadow-lg">
+                            <h3 class="text-xl font-semibold mb-2"><span data-lang-key="why_us_3_title">Personalized Mentorship</span></h3>
+                            <p class="text-gray-600"><span data-lang-key="why_us_3_desc">Receive one-on-one guidance to track your progress and clear doubts.</span></p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <!-- Testimonials Section -->
+            <section class="py-12 md:py-16 bg-gray-100">
+                <div class="container mx-auto px-4 sm:px-6">
+                    <h2 class="text-3xl font-bold text-center mb-12"><span data-lang-key="testimonials_title">What Our Students Say</span></h2>
+                    <div class="grid md:grid-cols-3 gap-8">
+                        <div class="bg-white p-8 rounded-lg shadow-lg">
+                            <p class="text-gray-600 italic mb-4">"<span data-lang-key="testimonial_1_text">The teachers at Eklavya are fantastic. They clear every doubt and make learning fun. My grades have improved so much!</span>"</p>
+                            <p class="text-right font-semibold text-indigo-600">- <span data-lang-key="testimonial_1_name">Rohan Sharma</span>, <span data-lang-key="testimonial_1_class">Class 10</span></p>
+                        </div>
+                        <div class="bg-white p-8 rounded-lg shadow-lg">
+                            <p class="text-gray-600 italic mb-4">"<span data-lang-key="testimonial_2_text">I used to be scared of Maths, but the personalized attention I received here helped me gain confidence. Thank you!</span>"</p>
+                            <p class="text-right font-semibold text-indigo-600">- <span data-lang-key="testimonial_2_name">Priya Singh</span>, <span data-lang-key="testimonial_2_class">Class 8</span></p>
+                        </div>
+                        <div class="bg-white p-8 rounded-lg shadow-lg">
+                            <p class="text-gray-600 italic mb-4">"<span data-lang-key="testimonial_3_text">The study material is excellent and covers everything needed for both board exams and competitive tests. Highly recommended.</span>"</p>
+                            <p class="text-right font-semibold text-indigo-600">- <span data-lang-key="testimonial_3_name">Anjali Verma</span>, <span data-lang-key="testimonial_3_class">Class 12</span></p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Courses Page -->
+        <div id="page-courses" class="page">
+             <div class="container mx-auto px-4 sm:px-6 py-12 md:py-16">
+                <h2 class="text-3xl font-bold text-center mb-12"><span data-lang-key="courses_title">Our Programs</span></h2>
+                <div class="grid md:grid-cols-3 gap-8">
+                    <div class="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col">
+                        <img src="https://placehold.co/600x400/3498db/ffffff?text=Middle+School" alt="Middle School" class="w-full h-48 object-cover">
+                        <div class="p-6 flex flex-col flex-grow">
+                            <h3 class="text-xl font-semibold mb-2"><span data-lang-key="course_1_title">Middle School (Class 6-8)</span></h3>
+                            <p class="text-gray-700 mb-1"><span class="font-semibold" data-lang-key="subjects">Subjects:</span> <span data-lang-key="course_1_subjects">Maths, Science, English</span></p>
+                            <p class="text-gray-600 mt-auto"><span class="font-semibold" data-lang-key="features">Features:</span> <span data-lang-key="course_1_features">Foundation, Practice Worksheets</span></p>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col">
+                         <img src="https://placehold.co/600x400/2ecc71/ffffff?text=High+School" alt="High School" class="w-full h-48 object-cover">
+                        <div class="p-6 flex flex-col flex-grow">
+                            <h3 class="text-xl font-semibold mb-2"><span data-lang-key="course_2_title">High School (Class 9-10)</span></h3>
+                            <p class="text-gray-700 mb-1"><span class="font-semibold" data-lang-key="subjects">Subjects:</span> <span data-lang-key="course_2_subjects">Maths, Science, SST</span></p>
+                            <p class="text-gray-600 mt-auto"><span class="font-semibold" data-lang-key="features">Features:</span> <span data-lang-key="course_2_features">Board & Competitive Prep</span></p>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col">
+                         <img src="https://placehold.co/600x400/e74c3c/ffffff?text=Senior+Secondary" alt="Senior Secondary" class="w-full h-48 object-cover">
+                        <div class="p-6 flex flex-col flex-grow">
+                            <h3 class="text-xl font-semibold mb-2"><span data-lang-key="course_3_title">Senior Secondary (Class 11-12)</span></h3>
+                            <p class="text-gray-700 mb-1"><span class="font-semibold" data-lang-key="subjects">Subjects:</span> <span data-lang-key="course_3_subjects">PCM / PCB</span></p>
+                            <p class="text-gray-600 mt-auto"><span class="font-semibold" data-lang-key="features">Features:</span> <span data-lang-key="course_3_features">NEET/JEE Foundation & School Boards</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- About Page -->
+        <div id="page-about" class="page">
+            <div class="container mx-auto px-4 sm:px-6 py-12 md:py-16">
+                <h2 class="text-3xl font-bold text-center mb-8"><span data-lang-key="about_title">About Eklavya Coaching Institute</span></h2>
+                <p class="text-lg text-gray-700 max-w-3xl mx-auto text-center"><span data-lang-key="about_desc">Founded with the vision to provide quality education and mentorship, Eklavya Coaching Institute has been a beacon of hope for thousands of students. Our mission is to empower students with the knowledge and skills to achieve their academic and career goals. We believe in a holistic approach to learning that goes beyond textbooks.</span></p>
+            </div>
+        </div>
+
+        <!-- Contact Page -->
+        <div id="page-contact" class="page">
+             <div class="container mx-auto px-4 sm:px-6 py-12 md:py-16">
+                <h2 class="text-3xl font-bold text-center mb-12"><span data-lang-key="contact_title">Get In Touch</span></h2>
+                <div class="grid md:grid-cols-2 gap-12 items-start">
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <form id="contact-form" action="https://docs.google.com/forms/d/e/1FAIpQLSfm-IXBsQNFOJK8F0WkL326mnLQz9-rmuAMx0HECFudDkLbQQ/formResponse" method="POST" target="hidden_iframe">
+                            <div id="form-fields">
+                                <div class="mb-4">
+                                    <label class="block text-gray-700 font-semibold mb-2" for="name"><span data-lang-key="contact_name">Name</span></label>
+                                    <input class="w-full px-3 py-2 border rounded-lg" type="text" id="name" name="entry.1603676533" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="block text-gray-700 font-semibold mb-2" for="mobile"><span data-lang-key="contact_mobile">Mobile Number</span></label>
+                                    <input class="w-full px-3 py-2 border rounded-lg" type="tel" id="mobile" name="entry.505293874" required>
+                                </div>
+                                <div class="mb-6">
+                                    <label class="block text-gray-700 font-semibold mb-2" for="message"><span data-lang-key="contact_message">Message</span></label>
+                                    <textarea class="w-full px-3 py-2 border rounded-lg" id="message" name="entry.888696562" rows="4" required></textarea>
+                                </div>
+                                <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700">
+                                    <span data-lang-key="contact_send">Send Message</span>
+                                </button>
+                            </div>
+                            <div id="form-success" class="hidden text-center p-4 bg-green-100 text-green-800 rounded-lg">
+                                <p data-lang-key="contact_success">Your message has been sent successfully!</p>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                         <h3 class="text-2xl font-bold mb-4"><span data-lang-key="address_title">Our Address</span></h3>
+                         <address class="not-italic text-gray-600 space-y-2">
+                             <p data-lang-key="address_text">Haiderganj Bazar, Near Dhobna Chauraha<br>Ayodhya, Uttar Pradesh – 224205<br>India</p>
+                         </address>
+                         <div class="mt-6">
+                             <a href="https://www.google.com/maps?q=26.4585130,82.2324330" target="_blank" rel="noopener noreferrer" class="inline-block bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-indigo-700 transition duration-300">
+                                 <span data-lang-key="view_on_map">View on Google Maps</span>
+                             </a>
+                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Login Page -->
+        <div id="page-login" class="page">
+            <div class="flex-grow flex items-center justify-center bg-gray-100 p-4">
+                <div class="w-full max-w-md p-8 space-y-6 bg-white rounded-xl shadow-lg m-4">
+                    <h2 class="text-2xl font-bold text-center text-gray-800"><span data-lang-key="login_title">Student Login</span></h2>
+                    <form id="login-form" class="space-y-6">
+                        <div>
+                            <label for="student-id-login" class="text-sm font-semibold text-gray-600"><span data-lang-key="login_studentid_label">Student ID</span></label>
+                            <input id="student-id-login" type="text" class="w-full px-4 py-2 mt-2 text-lg border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500" placeholder="e.g., S06001">
+                        </div>
+                        <div>
+                            <label for="secret-code-login" class="text-sm font-semibold text-gray-600"><span data-lang-key="login_secret_code">Secret Code</span></label>
+                            <input id="secret-code-login" type="password" class="w-full px-4 py-2 mt-2 text-lg border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <p id="login-error" class="text-sm text-red-500 hidden"></p>
+                        <div>
+                            <button id="login-button" type="submit" class="w-full py-3 font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400">
+                                <span data-lang-key="login_button">Login</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Signup Page -->
+        <div id="page-signup" class="page">
+            <div class="flex-grow flex items-center justify-center bg-gray-100 p-4">
+                <div class="w-full max-w-md p-8 space-y-6 bg-white rounded-xl shadow-lg m-4">
+                    <h2 class="text-2xl font-bold text-center text-gray-800"><span data-lang-key="signup_title">Student Signup</span></h2>
+                    <form id="signup-form" class="space-y-6">
+                        <div>
+                            <label for="mobile-signup" class="text-sm font-semibold text-gray-600"><span data-lang-key="signup_mobile_label">Enter Your Registered Mobile Number</span></label>
+                            <input id="mobile-signup" type="tel" class="w-full px-4 py-2 mt-2 text-lg border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500" placeholder="e.g., 9876543210">
+                        </div>
+                        <div>
+                            <label for="secret-code-signup" class="text-sm font-semibold text-gray-600"><span data-lang-key="login_secret_code">Secret Code</span></label>
+                            <input id="secret-code-signup" type="password" class="w-full px-4 py-2 mt-2 text-lg border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <p id="signup-error" class="text-sm text-red-500 hidden"></p>
+                        <div>
+                            <button id="signup-button" type="submit" class="w-full py-3 font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400">
+                                <span data-lang-key="signup_button">Verify</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Create Profile Page -->
+        <div id="page-create-profile" class="page">
+            <div class="flex-grow flex items-center justify-center bg-gray-100 p-4">
+                <div class="w-full max-w-md p-8 space-y-6 bg-white rounded-xl shadow-lg m-4">
+                    <h2 class="text-2xl font-bold text-center text-gray-800"><span data-lang-key="profile_title">Create Your Profile</span></h2>
+                    <form id="profile-form" class="space-y-6">
+                        <div>
+                            <label for="profile-name" class="text-sm font-semibold text-gray-600"><span data-lang-key="profile_name">Full Name</span></label>
+                            <input id="profile-name" type="text" class="w-full px-4 py-2 mt-2 text-lg border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500" required>
+                        </div>
+                        <div>
+                            <label for="profile-father-name" class="text-sm font-semibold text-gray-600"><span data-lang-key="profile_father_name">Father's Name</span></label>
+                            <input id="profile-father-name" type="text" class="w-full px-4 py-2 mt-2 text-lg border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500" required>
+                        </div>
+                        <div>
+                            <label for="profile-class" class="text-sm font-semibold text-gray-600"><span data-lang-key="profile_class">Class</span></label>
+                            <select id="profile-class" class="w-full px-4 py-2 mt-2 text-lg border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500" required>
+                                <option value="" disabled selected>Select your class</option>
+                                <option value="6">6</option>
+                                <option value="7">7</option>
+                                <option value="8">8</option>
+                                <option value="9">9</option>
+                                <option value="10">10</option>
+                                <option value="11">11</option>
+                                <option value="12">12</option>
+                            </select>
+                        </div>
+                        <p id="profile-error" class="text-sm text-red-500 hidden"></p>
+                        <div>
+                            <button id="profile-button" type="submit" class="w-full py-3 font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:bg-green-400">
+                                <span data-lang-key="profile_button">Save Profile & Generate ID</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Page -->
+        <div id="page-dashboard" class="page">
+            <div class="container mx-auto px-4 sm:px-6 py-12 md:py-16">
+                <h2 id="dashboard-welcome" class="text-3xl font-bold mb-6"></h2>
+                
+                <!-- Dashboard Tabs -->
+                <div class="border-b border-gray-200 mb-6">
+                    <nav class="-mb-px flex space-x-6 overflow-x-auto" aria-label="Tabs">
+                        <button class="dashboard-tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-indigo-500 text-indigo-600" data-tab="details">
+                            <span data-lang-key="dashboard_tab_details">My Details</span>
+                        </button>
+                        <button class="dashboard-tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 flex items-center space-x-2" data-tab="announcements">
+                            <span data-lang-key="dashboard_tab_announcements">Announcements</span>
+                            <span id="announcements-badge" class="hidden bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full" data-lang-key="announcements_badge_new">New</span>
+                        </button>
+                        <button class="dashboard-tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="attendance">
+                            <span data-lang-key="dashboard_tab_attendance">Attendance</span>
+                        </button>
+                        <button class="dashboard-tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="ai-test">
+                            <span data-lang-key="dashboard_tab_ai_test">Practice Test</span>
+                        </button>
+                    </nav>
+                </div>
+
+                <!-- Tab Content: Details -->
+                <div id="tab-content-details" class="dashboard-tab-content active">
+                    <div id="student-details" class="bg-white p-6 rounded-lg shadow-md mb-8"></div>
+                    <button id="edit-profile-btn" class="bg-blue-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-blue-600" data-page="edit-profile"><span data-lang-key="dashboard_edit_profile">Edit Profile</span></button>
+                </div>
+                
+                <!-- Tab Content: Announcements -->
+                <div id="tab-content-announcements" class="dashboard-tab-content">
+                    <h3 class="text-2xl font-bold mb-4" data-lang-key="announcements_title">Latest Announcements</h3>
+                    <div id="announcements-container" class="space-y-4">
+                        <!-- Announcements will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Tab Content: Attendance -->
+                <div id="tab-content-attendance" class="dashboard-tab-content">
+                    <h3 class="text-2xl font-bold mb-4" data-lang-key="attendance_title">My Attendance</h3>
+                    <div class="overflow-x-auto bg-white rounded-lg shadow-md">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-lang-key="attendance_th_date">Date</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-lang-key="attendance_th_status">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="attendance-table-body" class="bg-white divide-y divide-gray-200">
+                                <!-- Attendance records will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Tab Content: AI Test -->
+                <div id="tab-content-ai-test" class="dashboard-tab-content">
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-2xl font-bold mb-4" data-lang-key="ai_test_title">Practice Test</h3>
+                        <div id="ai-test-setup">
+                            <div class="mb-4">
+                                <label for="test-topic" class="block text-gray-700 font-semibold mb-2" data-lang-key="ai_test_topic_label">Enter a Topic</label>
+                                <input type="text" id="test-topic" class="w-full px-3 py-2 border rounded-lg" placeholder="e.g., Photosynthesis">
+                            </div>
+                            <button id="generate-test-btn" class="w-full sm:w-auto bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 flex items-center justify-center">
+                                <span data-lang-key="ai_test_generate_btn">Generate Test</span>
+                            </button>
+                        </div>
+                        <div id="ai-test-loader" class="hidden text-center py-8">
+                            <div class="loader mx-auto"></div>
+                            <p class="mt-2 text-gray-600" data-lang-key="ai_test_loading">Generating your test...</p>
+                        </div>
+                        <div id="ai-test-container" class="mt-6 hidden">
+                            <!-- Quiz questions will be injected here -->
+                        </div>
+                        <div id="ai-test-results-container" class="mt-6 hidden">
+                            <!-- Quiz results will be injected here -->
+                        </div>
+                         <p id="ai-test-error" class="text-sm text-red-500 mt-4 hidden"></p>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+
+        <!-- Edit Profile Page -->
+        <div id="page-edit-profile" class="page">
+            <div class="flex-grow flex items-center justify-center bg-gray-100 p-4">
+                <div class="w-full max-w-md p-8 space-y-6 bg-white rounded-xl shadow-lg m-4">
+                    <h2 class="text-2xl font-bold text-center text-gray-800"><span data-lang-key="edit_profile_title">Edit Your Profile</span></h2>
+                    <form id="edit-profile-form" class="space-y-6">
+                        <div>
+                            <label for="edit-profile-name" class="text-sm font-semibold text-gray-600"><span data-lang-key="profile_name">Full Name</span></label>
+                            <input id="edit-profile-name" type="text" class="w-full px-4 py-2 mt-2 text-lg border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500" required>
+                        </div>
+                        <div>
+                            <label for="edit-profile-father-name" class="text-sm font-semibold text-gray-600"><span data-lang-key="profile_father_name">Father's Name</span></label>
+                            <input id="edit-profile-father-name" type="text" class="w-full px-4 py-2 mt-2 text-lg border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500" required>
+                        </div>
+                        <div>
+                            <label for="edit-profile-class" class="text-sm font-semibold text-gray-600"><span data-lang-key="profile_class">Class</span></label>
+                            <select id="edit-profile-class" class="w-full px-4 py-2 mt-2 text-lg border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500" required>
+                                <option value="" disabled>Select your class</option>
+                                <option value="6">6</option>
+                                <option value="7">7</option>
+                                <option value="8">8</option>
+                                <option value="9">9</option>
+                                <option value="10">10</option>
+                                <option value="11">11</option>
+                                <option value="12">12</option>
+                            </select>
+                        </div>
+                        <p id="edit-profile-error" class="text-sm text-red-500 hidden"></p>
+                        <div>
+                            <button id="update-profile-button" type="submit" class="w-full py-3 font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:bg-green-400">
+                                <span data-lang-key="edit_profile_button">Update Profile</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white mt-auto">
+        <div class="container mx-auto px-4 sm:px-6 py-8 text-center">
+            <div class="mb-4">
+                <h3 class="font-semibold" data-lang-key="address_title">Our Address</h3>
+                <address class="not-italic text-gray-300" data-lang-key="address_text">Haiderganj Bazar, Near Dhobna Chauraha<br>Ayodhya, Uttar Pradesh – 224205<br>India</address>
+            </div>
+            <p><span data-lang-key="footer_text">© 2025 Eklavya Coaching Institute. All Rights Reserved.</span></p>
+             <p class="text-sm text-gray-400 mt-2">Made by Anonymous</p>
+        </div>
+    </footer>
+
+    <!-- Tap-to-call Floating Icon -->
+    <a href="tel:6389443540" aria-label="Call us" class="fixed bottom-5 right-24 z-50 bg-blue-500 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:bg-blue-600 transition-transform transform hover:scale-110">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1C9.49 21 3 14.51 3 7c0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.02.74-.25 1.02l-2.2 2.2z"/>
+        </svg>
+    </a>
+
+    <!-- WhatsApp Floating Icon -->
+    <a href="https://wa.me/919876543210?text=Hello%2C%20I%20want%20to%20inquire%20about%20your%20coaching%20classes.%20Please%20share%20details." aria-label="Chat on WhatsApp" target="_blank" rel="noopener noreferrer" class="fixed bottom-5 right-5 z-50 bg-green-500 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:bg-green-600 transition-transform transform hover:scale-110">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.894 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 4.315 1.731 6.086l-.515 1.876 1.905-.498z"/>
+        </svg>
+    </a>
+    
+    <!-- Hidden iframe for Google Form submission -->
+    <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
+
+    <!-- App Logic -->
+    <script type="module">
+        // --- PWA: Service Worker Registration ---
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                // We register the PWA service worker first
+                navigator.serviceWorker.register('./firebase-messaging-sw.js')
+                    .then(registration => {
+                        console.log('FCM ServiceWorker registration successful with scope: ', registration.scope);
+                    })
+                    .catch(err => {
+                        console.log('FCM ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
+
+        // --- Firebase Imports ---
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs, onSnapshot, updateDoc, getCountFromServer, Timestamp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+        // --- Import Firebase Cloud Messaging ---
+        import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-messaging.js";
+
+
+        // --- Language Data ---
+        const translations = {
+            en: {
+                institute_name: "Eklavya Coaching Institute",
+                nav_home: "Home",
+                nav_courses: "Courses",
+                nav_about: "About",
+                nav_contact: "Contact",
+                nav_student: "Student",
+                nav_signin: "Sign In",
+                nav_signup: "Sign Up",
+                nav_logout: "Logout",
+                home_title: "A Foundation for Success",
+                home_subtitle: "Join Eklavya Coaching Institute for excellence in studies from Class 6 to 12.",
+                home_demo_button: "Take a Demo Class",
+                why_us_title: "Why Choose Us?",
+                why_us_1_title: "Expert Faculty",
+                why_us_1_desc: "Learn from the best minds in the industry with years of teaching experience.",
+                why_us_2_title: "Comprehensive Material",
+                why_us_2_desc: "Get access to well-researched and up-to-date study materials.",
+                why_us_3_title: "Personalized Mentorship",
+                why_us_3_desc: "Receive one-on-one guidance to track your progress and clear doubts.",
+                courses_title: "Our Programs",
+                subjects: "Subjects:",
+                features: "Features:",
+                course_1_title: "Middle School (Class 6-8)",
+                course_1_subjects: "Maths, Science, English",
+                course_1_features: "Foundation, Practice Worksheets",
+                course_2_title: "High School (Class 9-10)",
+                course_2_subjects: "Maths, Science, SST",
+                course_2_features: "Board & Competitive Prep",
+                course_3_title: "Senior Secondary (Class 11-12)",
+                course_3_subjects: "PCM / PCB",
+                course_3_features: "NEET/JEE Foundation & School Boards",
+                about_title: "About Eklavya Coaching Institute",
+                about_desc: "Founded with the vision to provide quality education and mentorship, Eklavya Coaching Institute has been a beacon of hope for thousands of students. Our mission is to empower students with the knowledge and skills to achieve their academic and career goals. We believe in a holistic approach to learning that goes beyond textbooks.",
+                contact_title: "Get In Touch",
+                contact_name: "Name",
+                contact_mobile: "Mobile Number",
+                contact_message: "Message",
+                contact_send: "Send Message",
+                contact_success: "Your message has been sent successfully!",
+                address_title: "Our Address",
+                address_text: "Haiderganj Bazar, Near Dhobna Chauraha<br>Ayodhya, Uttar Pradesh – 224205<br>India",
+                view_on_map: "View on Google Maps",
+                testimonials_title: "What Our Students Say",
+                testimonial_1_text: "The teachers at Eklavya are fantastic. They clear every doubt and make learning fun. My grades have improved so much!",
+                testimonial_1_name: "Rohan Sharma",
+                testimonial_1_class: "Class 10",
+                testimonial_2_text: "I used to be scared of Maths, but the personalized attention I received here helped me gain confidence. Thank you!",
+                testimonial_2_name: "Priya Singh",
+                testimonial_2_class: "Class 8",
+                testimonial_3_text: "The study material is excellent and covers everything needed for both board exams and competitive tests. Highly recommended.",
+                testimonial_3_name: "Anjali Verma",
+                testimonial_3_class: "Class 12",
+                login_title: "Student Login",
+                login_studentid_label: "Student ID",
+                login_secret_code: "Secret Code",
+                login_button: "Login",
+                login_error_invalid: "Invalid Student ID or Secret Code.",
+                login_error_general: "An error occurred. Please try again.",
+                login_error_network: "Network error. Please check your connection.",
+                login_verifying: "Verifying...",
+                signup_title: "Student Signup",
+                signup_mobile_label: "Enter Your Registered Mobile Number",
+                signup_button: "Verify",
+                profile_title: "Create Your Profile",
+                profile_name: "Full Name",
+                profile_father_name: "Father's Name",
+                profile_class: "Class",
+                profile_button: "Save Profile & Generate ID",
+                profile_saving: "Saving...",
+                profile_error: "Could not save profile. Please try again.",
+                dashboard_welcome: "Welcome,",
+                dashboard_tab_details: "My Details",
+                dashboard_tab_announcements: "Announcements",
+                dashboard_tab_attendance: "Attendance",
+                dashboard_tab_ai_test: "Practice Test",
+                announcements_badge_new: "New",
+                dashboard_student_details: "Student Details",
+                dashboard_name: "Name:",
+                dashboard_mobile: "Mobile:",
+                dashboard_course: "Course:",
+                dashboard_student_id: "Student ID:",
+                dashboard_edit_profile: "Edit Profile",
+                announcements_title: "Latest Announcements",
+                announcements_no_data: "No announcements at this time.",
+                attendance_title: "My Attendance",
+                attendance_th_date: "Date",
+                attendance_th_status: "Status",
+                attendance_status_present: "Present",
+                attendance_status_absent: "Absent",
+                attendance_no_data: "No attendance records found.",
+                ai_test_title: "Practice Test",
+                ai_test_topic_label: "Enter a Topic",
+                ai_test_generate_btn: "Generate Test",
+                ai_test_loading: "Generating your test...",
+                ai_test_submit_btn: "Submit Test",
+                ai_test_results_title: "Test Results",
+                ai_test_score: "Your Score:",
+                ai_test_error_general: "Could not generate the test. Please try again.",
+                ai_test_error_no_topic: "Please enter a topic for the test.",
+                edit_profile_title: "Edit Your Profile",
+                edit_profile_button: "Update Profile",
+                footer_text: "© 2025 Eklavya Coaching Institute. All Rights Reserved."
+            },
+            hi: {
+                institute_name: "एकलव्य कोचिंग संस्थान",
+                nav_home: "होम",
+                nav_courses: "कोर्स",
+                nav_about: "हमारे बारे में",
+                nav_contact: "संपर्क",
+                nav_student: "छात्र",
+                nav_signin: "साइन इन करें",
+                nav_signup: "साइन अप करें",
+                nav_logout: "लॉग आउट",
+                home_title: "सफलता की नींव",
+                home_subtitle: "कक्षा 6 से 12 तक की पढ़ाई में उत्कृष्टता के लिए एकलव्य कोचिंग संस्थान से जुड़ें।",
+                home_demo_button: "डेमो क्लास लें",
+                why_us_title: "हमें क्यों चुनें?",
+                why_us_1_title: "विशेषज्ञ शिक्षक",
+                why_us_1_desc: "इंडस्ट्री के सर्वश्रेष्ठ शिक्षकों से सीखें जिनके पास वर्षों का शिक्षण अनुभव है।",
+                why_us_2_title: "व्यापक सामग्री",
+                why_us_2_desc: "अच्छी तरह से शोध की गई और नवीनतम अध्ययन सामग्री तक पहुँच प्राप्त करें।",
+                why_us_3_title: "व्यक्तिगत मार्गदर्शन",
+                why_us_3_desc: "अपनी प्रगति को ट्रैक करने और शंकाओं को दूर करने के लिए व्यक्तिगत मार्गदर्शन प्राप्त करें।",
+                courses_title: "हमारे कार्यक्रम",
+                subjects: "विषय:",
+                features: "विशेषताएँ:",
+                course_1_title: "मिडिल स्कूल (कक्षा 6-8)",
+                course_1_subjects: "गणित, विज्ञान, अंग्रेजी",
+                course_1_features: "फाउंडेशन, प्रैक्टिस वर्कशीट",
+                course_2_title: "हाई स्कूल (कक्षा 9-10)",
+                course_2_subjects: "गणित, विज्ञान, सामाजिक विज्ञान",
+                course_2_features: "बोर्ड और प्रतियोगी तैयारी",
+                course_3_title: "सीनियर सेकेंडरी (कक्षा 11-12)",
+                course_3_subjects: "पीसीएम / पीसीबी",
+                course_3_features: "नीट/जेईई फाउंडेशन और स्कूल बोर्ड",
+                about_title: "एकलव्य कोचिंग संस्थान के बारे में",
+                about_desc: "गुणवत्तापूर्ण शिक्षा और मार्गदर्शन प्रदान करने की दृष्टि से स्थापित, एकलव्य कोचिंग संस्थान हजारों छात्रों के लिए आशा की किरण रहा है। हमारा मिशन छात्रों को उनके शैक्षणिक और करियर लक्ष्यों को प्राप्त करने के लिए ज्ञान और कौशल के साथ सशक्त बनाना है। हम सीखने के लिए एक समग्र दृष्टिकोण में विश्वास करते हैं जो पाठ्यपुस्तकों से परे है।",
+                contact_title: "संपर्क करें",
+                contact_name: "नाम",
+                contact_mobile: "मोबाइल नंबर",
+                contact_message: "संदेश",
+                contact_send: "संदेश भेजें",
+                contact_success: "आपका संदेश सफलतापूर्वक भेज दिया गया है!",
+                address_title: "हमारा पता",
+                address_text: "हैदरगंज बाजार, धोबना चौराहा के पास<br>अयोध्या, उत्तर प्रदेश - 224205<br>भारत",
+                view_on_map: "गूगल मैप्स पर देखें",
+                testimonials_title: "हमारे छात्र क्या कहते हैं",
+                testimonial_1_text: "एकलव्य के शिक्षक शानदार हैं। वे हर संदेह को दूर करते हैं और सीखने को मजेदार बनाते हैं। मेरे ग्रेड में बहुत सुधार हुआ है!",
+                testimonial_1_name: "रोहन शर्मा",
+                testimonial_1_class: "कक्षा 10",
+                testimonial_2_text: "मुझे पहले गणित से डर लगता था, लेकिन यहां मिले व्यक्तिगत ध्यान ने मुझे आत्मविश्वास हासिल करने में मदद की। धन्यवाद!",
+                testimonial_2_name: "प्रिया सिंह",
+                testimonial_2_class: "कक्षा 8",
+                testimonial_3_text: "अध्ययन सामग्री उत्कृष्ट है और इसमें बोर्ड परीक्षा और प्रतियोगी परीक्षाओं दोनों के लिए आवश्यक सब कुछ शामिल है। अत्यधिक अनुशंसित।",
+                testimonial_3_name: "अंजलि वर्मा",
+                testimonial_3_class: "कक्षा 12",
+                login_title: "छात्र लॉगिन",
+                login_studentid_label: "छात्र आईडी",
+                login_secret_code: "गुप्त कोड",
+                login_button: "लॉगिन करें",
+                login_error_invalid: "अमान्य छात्र आईडी या गुप्त कोड।",
+                login_error_general: "एक त्रुटि हुई। कृपया बाद में पुनः प्रयास करें।",
+                login_error_network: "नेटवर्क त्रुटि। कृपया अपना कनेक्शन जांचें।",
+                login_verifying: "सत्यापित हो रहा है...",
+                signup_title: "छात्र साइनअप",
+                signup_mobile_label: "अपना पंजीकृत मोबाइल नंबर दर्ज करें",
+                signup_button: "सत्यापित करें",
+                profile_title: "अपनी प्रोफाइल बनाएं",
+                profile_name: "पूरा नाम",
+                profile_father_name: "पिता का नाम",
+                profile_class: "कक्षा",
+                profile_button: "प्रोफ़ाइल सहेजें और आईडी बनाएं",
+                profile_saving: "सहेज रहा है...",
+                profile_error: "प्रोफ़ाइल सहेजी नहीं जा सकी। कृपया पुन: प्रयास करें।",
+                dashboard_welcome: "स्वागत है,",
+                dashboard_tab_details: "मेरे विवरण",
+                dashboard_tab_announcements: "घोषणाएँ",
+                dashboard_tab_attendance: "उपस्थिति",
+                dashboard_tab_ai_test: "प्रैक्टिस टेस्ट",
+                announcements_badge_new: "नया",
+                dashboard_student_details: "छात्र विवरण",
+                dashboard_name: "नाम:",
+                dashboard_mobile: "मोबाइल:",
+                dashboard_course: "कोर्स:",
+                dashboard_student_id: "छात्र आईडी:",
+                dashboard_edit_profile: "प्रोफ़ाइल संपादित करें",
+                announcements_title: "नवीनतम घोषणाएँ",
+                announcements_no_data: "इस समय कोई घोषणा नहीं है।",
+                attendance_title: "मेरी उपस्थिति",
+                attendance_th_date: "दिनांक",
+                attendance_th_status: "स्थिति",
+                attendance_status_present: "उपस्थित",
+                attendance_status_absent: "अनुपस्थित",
+                attendance_no_data: "कोई उपस्थिति रिकॉर्ड नहीं मिला।",
+                ai_test_title: "प्रैक्टिस टेस्ट",
+                ai_test_topic_label: "एक विषय दर्ज करें",
+                ai_test_generate_btn: "टेस्ट उत्पन्न करें",
+                ai_test_loading: "आपका टेस्ट तैयार हो रहा है...",
+                ai_test_submit_btn: "टेस्ट सबमिट करें",
+                ai_test_results_title: "परीक्षा के परिणाम",
+                ai_test_score: "आपका स्कोर:",
+                ai_test_error_general: "टेस्ट उत्पन्न नहीं हो सका। कृपया पुन: प्रयास करें।",
+                ai_test_error_no_topic: "कृपया परीक्षा के लिए एक विषय दर्ज करें।",
+                edit_profile_title: "अपनी प्रोफ़ाइल संपादित करें",
+                edit_profile_button: "प्रोफ़ाइल अपडेट करें",
+                footer_text: "© 2025 एकलव्य कोचिंग संस्थान। सर्वाधिकार सुरक्षित।"
+            }
+        };
+        
+        let currentStudent = null;
+        let currentLanguage = 'en';
+        let currentTestQuestions = [];
+        let deferredPrompt; // For PWA install prompt
+        let announcementsListener = null; // To hold the unsubscribe function for the real-time listener
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- PWA: Capture the install prompt ---
+            const installBtn = document.getElementById('install-app-btn');
+            window.addEventListener('beforeinstallprompt', (e) => {
+                // Prevent the mini-infobar from appearing on mobile
+                e.preventDefault();
+                // Stash the event so it can be triggered later.
+                deferredPrompt = e;
+                // Update UI to notify the user they can install the PWA
+                installBtn.classList.remove('hidden');
+                console.log('`beforeinstallprompt` event was fired.');
+            });
+
+            installBtn.addEventListener('click', async () => {
+                // Hide the app provided install promotion
+                installBtn.classList.add('hidden');
+                // Show the install prompt
+                deferredPrompt.prompt();
+                // Wait for the user to respond to the prompt
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User response to the install prompt: ${outcome}`);
+                // We've used the prompt, and can't use it again, throw it away
+                deferredPrompt = null;
+            });
+
+            // --- Firebase Configuration ---
+            const firebaseConfig = {
+                apiKey: "AIzaSyDWkPt4hWE5hSx5XOZDo_0clnEzYnJMTnI",
+                authDomain: "studentid-3132e.firebaseapp.com",
+                projectId: "studentid-3132e",
+                storageBucket: "studentid-3132e.appspot.com",
+                messagingSenderId: "358629211169",
+                appId: "1:358629211169:web:4ee8912293caabb312f760",
+                measurementId: "G-M9N66VYHVV"
+            };
+
+            // --- App State ---
+            let db, auth, messaging;
+            
+            // --- UI Elements ---
+            const pages = document.querySelectorAll('.page');
+            const navLinks = document.querySelectorAll('.nav-link');
+            
+            // --- Language Switcher Logic ---
+            function renderLanguage(lang) {
+                currentLanguage = lang;
+                const langData = translations[lang];
+                document.querySelectorAll('[data-lang-key]').forEach(el => {
+                    const key = el.getAttribute('data-lang-key');
+                    if (langData[key]) {
+                        el.innerHTML = langData[key];
+                    }
+                });
+            }
+
+            document.querySelectorAll('.language-toggle').forEach(toggle => {
+                toggle.addEventListener('change', (e) => {
+                    const lang = e.target.checked ? 'hi' : 'en';
+                    renderLanguage(lang);
+                    document.querySelectorAll('.language-toggle').forEach(t => t.checked = e.target.checked);
+                });
+            });
+
+            // --- Navigation Logic ---
+            function navigateTo(pageId) {
+                pages.forEach(page => {
+                    page.classList.remove('active');
+                });
+                const targetPage = document.getElementById(`page-${pageId}`);
+                if (targetPage) {
+                    targetPage.classList.add('active');
+                }
+                window.scrollTo(0, 0);
+                
+                const mobileMenu = document.getElementById('mobile-menu');
+                mobileMenu.classList.add('hidden');
+                document.getElementById('menu-open-icon').classList.remove('hidden');
+                document.getElementById('menu-close-icon').classList.add('hidden');
+            }
+            window.navigateTo = navigateTo;
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const pageId = link.getAttribute('data-page');
+                    navigateTo(pageId);
+                });
+            });
+
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+                document.getElementById('menu-open-icon').classList.toggle('hidden');
+                document.getElementById('menu-close-icon').classList.toggle('hidden');
+            });
+            
+            const studentDropdownButton = document.getElementById('student-dropdown-button');
+            const studentDropdownMenu = document.getElementById('student-dropdown-menu');
+            studentDropdownButton.addEventListener('click', () => {
+                studentDropdownMenu.classList.toggle('hidden');
+            });
+            
+            const contactForm = document.getElementById('contact-form');
+            contactForm.addEventListener('submit', (e) => {
+                setTimeout(() => {
+                    document.getElementById('form-fields').classList.add('hidden');
+                    document.getElementById('form-success').classList.remove('hidden');
+                }, 500);
+            });
+
+            // --- Function to check for persisted login ---
+            async function checkForPersistedLogin() {
+                const persistedStudent = localStorage.getItem('currentStudent');
+                if (persistedStudent) {
+                    currentStudent = JSON.parse(persistedStudent);
+                    // Refresh student data from Firestore to ensure it's up-to-date
+                    const studentDocRef = doc(db, "students", currentStudent.docId);
+                    const studentDoc = await getDoc(studentDocRef);
+                    if (studentDoc.exists()) {
+                        currentStudent = { docId: studentDoc.id, ...studentDoc.data() };
+                        updateUIAfterLogin();
+                        navigateTo('dashboard');
+                        renderDashboard();
+                        renderAttendance();
+                    } else {
+                        // If student was deleted from DB, log them out
+                        logout();
+                    }
+                }
+            }
+            
+            // --- Firebase Initialization and Auth ---
+            async function initializeAndAuth() {
+                try {
+                    const app = initializeApp(firebaseConfig);
+                    db = getFirestore(app);
+                    auth = getAuth(app);
+                    messaging = getMessaging(app); // Initialize Firebase Messaging
+                    
+                    await signInAnonymously(auth);
+
+                    onAuthStateChanged(auth, (user) => {
+                        if (user) {
+                            console.log("User is signed in:", user.uid);
+                            setupEventListeners();
+                            checkForPersistedLogin(); // Check for saved login after auth is ready
+                        }
+                    });
+                } catch (error) {
+                    console.error("Initialization Error:", error);
+                }
+            }
+
+            function setupEventListeners() {
+                const loginForm = document.getElementById('login-form');
+                const loginButton = document.getElementById('login-button');
+                const studentIdInput = document.getElementById('student-id-login');
+                const secretCodeInputLogin = document.getElementById('secret-code-login');
+                const loginError = document.getElementById('login-error');
+
+                loginForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const studentId = studentIdInput.value;
+                    const secretCode = secretCodeInputLogin.value;
+
+                    if (!studentId || !secretCode) {
+                        loginError.textContent = "Please fill both fields.";
+                        loginError.classList.remove('hidden');
+                        return;
+                    }
+
+                    loginButton.innerHTML = `<div class="loader mx-auto"></div>`;
+                    loginButton.disabled = true;
+                    loginError.classList.add('hidden');
+
+                    try {
+                        const studentsRef = collection(db, "students");
+                        const q = query(studentsRef, where("studentId", "==", studentId), where("secretCode", "==", secretCode));
+                        const querySnapshot = await getDocs(q);
+
+                        if (!querySnapshot.empty) {
+                            const studentDoc = querySnapshot.docs[0];
+                            currentStudent = { docId: studentDoc.id, ...studentDoc.data() };
+                            
+                            // Persist login to localStorage
+                            localStorage.setItem('currentStudent', JSON.stringify(currentStudent));
+
+                            updateUIAfterLogin();
+                            navigateTo('dashboard');
+                            renderDashboard();
+                            renderAttendance();
+                        } else {
+                            loginError.textContent = translations[currentLanguage].login_error_invalid;
+                            loginError.classList.remove('hidden');
+                        }
+                    } catch (err) {
+                        console.error("Login Error:", err);
+                        loginError.textContent = translations[currentLanguage].login_error_general;
+                        loginError.classList.remove('hidden');
+                    } finally {
+                        loginButton.innerHTML = `<span data-lang-key="login_button">${translations[currentLanguage].login_button}</span>`;
+                        loginButton.disabled = false;
+                    }
+                });
+                
+                const signupForm = document.getElementById('signup-form');
+                const signupButton = document.getElementById('signup-button');
+                const mobileSignupInput = document.getElementById('mobile-signup');
+                const secretCodeSignupInput = document.getElementById('secret-code-signup');
+                const signupError = document.getElementById('signup-error');
+
+                signupForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const mobile = mobileSignupInput.value;
+                    const secretCode = secretCodeSignupInput.value;
+
+                    if (!mobile || !secretCode) {
+                        signupError.textContent = "Please fill both fields.";
+                        signupError.classList.remove('hidden');
+                        return;
+                    }
+
+                    signupButton.innerHTML = `<div class="loader mx-auto"></div>`;
+                    signupButton.disabled = true;
+                    signupError.classList.add('hidden');
+
+                    try {
+                        const studentsRef = collection(db, "students");
+                        const q = query(studentsRef, where("mobile", "==", mobile), where("secretCode", "==", secretCode));
+                        const querySnapshot = await getDocs(q);
+
+                        if (!querySnapshot.empty) {
+                            const studentDoc = querySnapshot.docs[0];
+                            const studentData = studentDoc.data();
+                            if (studentData.studentId) {
+                                signupError.textContent = "This mobile number is already registered. Please Sign In.";
+                                signupError.classList.remove('hidden');
+                            } else {
+                                currentStudent = { docId: studentDoc.id, mobile: mobile };
+                                navigateTo('create-profile');
+                            }
+                        } else {
+                            signupError.textContent = "Mobile number or secret code not found in our records.";
+                            signupError.classList.remove('hidden');
+                        }
+                    } catch (err) {
+                        console.error("Signup Error:", err);
+                        signupError.textContent = translations[currentLanguage].login_error_general;
+                        signupError.classList.remove('hidden');
+                    } finally {
+                        signupButton.innerHTML = `<span data-lang-key="signup_button">${translations[currentLanguage].signup_button}</span>`;
+                        signupButton.disabled = false;
+                    }
+                });
+
+                const profileForm = document.getElementById('profile-form');
+                const profileButton = document.getElementById('profile-button');
+                const profileError = document.getElementById('profile-error');
+
+                profileForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    profileButton.innerHTML = `<div class="loader mx-auto"></div>`;
+                    profileButton.disabled = true;
+                    profileError.classList.add('hidden');
+
+                    const studentClass = document.getElementById('profile-class').value;
+
+                    try {
+                        const studentsRef = collection(db, "students");
+                        const q = query(studentsRef, where("course", "==", studentClass));
+                        const snapshot = await getCountFromServer(q);
+                        const studentCountInClass = snapshot.data().count;
+
+                        const newCount = (studentCountInClass + 1).toString().padStart(3, '0');
+                        const classCode = studentClass.toString().padStart(2, '0');
+                        const studentId = `S${classCode}${newCount}`;
+                        
+                        const studentDocRef = doc(db, "students", currentStudent.docId);
+
+                        const profileData = {
+                            name: document.getElementById('profile-name').value,
+                            fatherName: document.getElementById('profile-father-name').value,
+                            course: studentClass,
+                            studentId: studentId
+                        };
+                        
+                        await updateDoc(studentDocRef, profileData);
+
+                        currentStudent = { ...currentStudent, ...profileData };
+                        
+                        // Persist new profile to localStorage
+                        localStorage.setItem('currentStudent', JSON.stringify(currentStudent));
+
+                        updateUIAfterLogin();
+                        navigateTo('dashboard');
+                        renderDashboard();
+
+                    } catch (err) {
+                        console.error("Profile Save Error:", err);
+                        profileError.textContent = translations[currentLanguage].profile_error;
+                        profileError.classList.remove('hidden');
+                    } finally {
+                        profileButton.innerHTML = `<span data-lang-key="profile_button">${translations[currentLanguage].profile_button}</span>`;
+                        profileButton.disabled = false;
+                    }
+                });
+
+                const editProfileBtn = document.getElementById('edit-profile-btn');
+                editProfileBtn.addEventListener('click', () => {
+                    document.getElementById('edit-profile-name').value = currentStudent.name;
+                    document.getElementById('edit-profile-father-name').value = currentStudent.fatherName;
+                    document.getElementById('edit-profile-class').value = currentStudent.course;
+                    navigateTo('edit-profile');
+                });
+
+                const editProfileForm = document.getElementById('edit-profile-form');
+                const updateProfileButton = document.getElementById('update-profile-button');
+                const editProfileError = document.getElementById('edit-profile-error');
+
+                editProfileForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    updateProfileButton.innerHTML = `<div class="loader mx-auto"></div>`;
+                    updateProfileButton.disabled = true;
+                    editProfileError.classList.add('hidden');
+
+                    const updatedData = {
+                        name: document.getElementById('edit-profile-name').value,
+                        fatherName: document.getElementById('edit-profile-father-name').value,
+                        course: document.getElementById('edit-profile-class').value
+                    };
+
+                    try {
+                        const studentDocRef = doc(db, "students", currentStudent.docId);
+                        await updateDoc(studentDocRef, updatedData);
+                        currentStudent = { ...currentStudent, ...updatedData };
+
+                        // Update localStorage with new details
+                        localStorage.setItem('currentStudent', JSON.stringify(currentStudent));
+
+                        navigateTo('dashboard');
+                        renderDashboard();
+                    } catch (err) {
+                        console.error("Update Profile Error:", err);
+                        editProfileError.textContent = translations[currentLanguage].profile_error;
+                        editProfileError.classList.remove('hidden');
+                    } finally {
+                        updateProfileButton.innerHTML = `<span data-lang-key="edit_profile_button">${translations[currentLanguage].edit_profile_button}</span>`;
+                        updateProfileButton.disabled = false;
+                    }
+                });
+
+                document.getElementById('logout-btn-desktop').addEventListener('click', logout);
+                document.getElementById('logout-btn-mobile').addEventListener('click', logout);
+                
+                // Dashboard Tab switching logic
+                const tabButtons = document.querySelectorAll('.dashboard-tab-btn');
+                tabButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        const tabId = button.getAttribute('data-tab');
+                        
+                        // If the announcements tab is clicked, update the last viewed time
+                        if (tabId === 'announcements') {
+                            localStorage.setItem('lastViewedAnnouncements', new Date().getTime());
+                            // Hide the badge immediately on click
+                            document.getElementById('announcements-badge').classList.add('hidden');
+                        }
+
+                        tabButtons.forEach(btn => {
+                            btn.classList.remove('border-indigo-500', 'text-indigo-600');
+                            btn.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+                        });
+                        button.classList.add('border-indigo-500', 'text-indigo-600');
+                        button.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+
+                        const tabContents = document.querySelectorAll('.dashboard-tab-content');
+                        tabContents.forEach(content => content.classList.remove('active'));
+                        document.getElementById(`tab-content-${tabId}`).classList.add('active');
+                    });
+                });
+
+                // AI Test Logic
+                document.getElementById('generate-test-btn').addEventListener('click', generateTest);
+            }
+
+            // --- Notification Permission & Token Retrieval ---
+            async function requestNotificationPermission() {
+                if (!('Notification' in window)) {
+                    console.log("This browser does not support desktop notification");
+                    return;
+                }
+                
+                const permission = await Notification.requestPermission();
+                if (permission === 'granted') {
+                    console.log('Notification permission granted.');
+                    
+                    try {
+                        // VAPID key from Firebase Console -> Project Settings -> Cloud Messaging -> Web config
+                        const vapidKey = "BDsM4U6lJ8Sl-n40vcQokWQUJbzz9cB3eSjHB6G1GhFSfcyXcUG0E85m3OWqEy34sKEjTK6uXuy5A-dCMQyxHi8";
+                        const currentToken = await getToken(messaging, { vapidKey: vapidKey });
+                        
+                        if (currentToken) {
+                            console.log('FCM Token:', currentToken);
+                            // Send this token to your server and associate it with the current user
+                            const tokenRef = doc(db, "fcmTokens", currentStudent.docId);
+                            await setDoc(tokenRef, { token: currentToken, studentId: currentStudent.studentId });
+                            console.log('FCM token saved for student.');
+                        } else {
+                            console.log('No registration token available. Request permission to generate one.');
+                        }
+                    } catch (err) {
+                        console.error('An error occurred while retrieving token. ', err);
+                    }
+                } else {
+                    console.log('Notification permission denied.');
+                }
+            }
+
+
+            function updateUIAfterLogin() {
+                document.getElementById('auth-links-desktop').classList.add('hidden');
+                document.getElementById('user-links-desktop').classList.remove('hidden');
+                document.getElementById('welcome-user-desktop').textContent = `${translations[currentLanguage].dashboard_welcome} ${currentStudent.name}`;
+                
+                document.getElementById('auth-links-mobile').classList.add('hidden');
+                document.getElementById('user-links-mobile').classList.remove('hidden');
+                document.getElementById('welcome-user-mobile').textContent = `${translations[currentLanguage].dashboard_welcome} ${currentStudent.name}`;
+
+                // Request notification permission and get FCM token after successful login
+                requestNotificationPermission();
+                // Setup the real-time listener to display announcements on the page
+                setupAnnouncementsListener();
+            }
+
+            function updateUIAfterLogout() {
+                document.getElementById('auth-links-desktop').classList.remove('hidden');
+                document.getElementById('user-links-desktop').classList.add('hidden');
+                
+                document.getElementById('auth-links-mobile').classList.remove('hidden');
+                document.getElementById('user-links-mobile').classList.add('hidden');
+            }
+
+            function logout() {
+                currentStudent = null;
+                // Remove the persisted login from localStorage
+                localStorage.removeItem('currentStudent');
+                // Detach the real-time listener
+                if (announcementsListener) {
+                    announcementsListener();
+                }
+                updateUIAfterLogout();
+                document.getElementById('announcements-badge').classList.add('hidden');
+                navigateTo('home');
+            }
+
+            function renderDashboard() {
+                const welcomeEl = document.getElementById('dashboard-welcome');
+                const detailsEl = document.getElementById('student-details');
+
+                welcomeEl.innerHTML = `<span data-lang-key="dashboard_welcome">Welcome,</span> ${currentStudent.name}!`;
+                
+                detailsEl.innerHTML = `
+                    <h3 class="text-xl font-semibold mb-4" data-lang-key="dashboard_student_details">Student Details</h3>
+                    <div class="space-y-2">
+                        <p><strong data-lang-key="dashboard_name">Name:</strong> ${currentStudent.name}</p>
+                        <p><strong data-lang-key="dashboard_mobile">Mobile:</strong> ${currentStudent.mobile}</p>
+                        <p><strong data-lang-key="dashboard_course">Course:</strong> ${currentStudent.course}</p>
+                        <p><strong data-lang-key="dashboard_student_id">Student ID:</strong> ${currentStudent.studentId}</p>
+                    </div>
+                `;
+                renderLanguage(currentLanguage);
+            }
+
+            // This function handles displaying announcements and the "New" badge.
+            function setupAnnouncementsListener() {
+                const container = document.getElementById('announcements-container');
+                const announcementsRef = collection(db, "announcements");
+                const q = query(announcementsRef);
+
+                if (announcementsListener) announcementsListener();
+
+                announcementsListener = onSnapshot(q, (querySnapshot) => {
+                    let hasNewAnnouncements = false;
+                    const lastViewed = localStorage.getItem('lastViewedAnnouncements') || 0;
+
+                    const announcements = [];
+                    querySnapshot.forEach(doc => {
+                        const announcement = { id: doc.id, ...doc.data() };
+                        announcements.push(announcement);
+                        // Check if announcement is newer than the last time the user viewed the page
+                        if (announcement.postDate && announcement.postDate.toMillis() > lastViewed) {
+                            hasNewAnnouncements = true;
+                        }
+                    });
+                    
+                    announcements.sort((a, b) => (b.postDate?.toMillis() || 0) - (a.postDate?.toMillis() || 0));
+
+                    // Update the badge visibility
+                    const badge = document.getElementById('announcements-badge');
+                    if (hasNewAnnouncements) {
+                        badge.classList.remove('hidden');
+                    } else {
+                        badge.classList.add('hidden');
+                    }
+
+                    // Render the announcements list
+                    container.innerHTML = '';
+                    if (announcements.length === 0) {
+                        container.innerHTML = `<p data-lang-key="announcements_no_data">${translations[currentLanguage].announcements_no_data}</p>`;
+                    } else {
+                        announcements.forEach(announcement => {
+                            const date = announcement.postDate?.toDate().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) || 'No Date';
+                            const el = document.createElement('div');
+                            el.className = 'bg-white p-4 rounded-lg shadow';
+                            el.innerHTML = `
+                                <div class="flex justify-between items-center mb-2">
+                                    <h4 class="text-lg font-semibold text-indigo-700">${announcement.title}</h4>
+                                    <span class="text-sm text-gray-500">${date}</span>
+                                </div>
+                                <p class="text-gray-600">${announcement.message}</p>
+                            `;
+                            container.appendChild(el);
+                        });
+                    }
+                });
+            }
+
+
+            async function renderAttendance() {
+                const tableBody = document.getElementById('attendance-table-body');
+                tableBody.innerHTML = `<tr><td colspan="2" class="text-center p-4"><div class="loader mx-auto"></div></td></tr>`;
+
+                try {
+                    const attendanceRef = collection(db, "attendance");
+                    const q = query(attendanceRef, where("studentId", "==", currentStudent.docId));
+                    const querySnapshot = await getDocs(q);
+
+                    if (querySnapshot.empty) {
+                        tableBody.innerHTML = `<tr><td colspan="2" class="text-center p-4" data-lang-key="attendance_no_data">${translations[currentLanguage].attendance_no_data}</td></tr>`;
+                        return;
+                    }
+
+                    tableBody.innerHTML = '';
+                    const records = [];
+                    querySnapshot.forEach(doc => records.push(doc.data()));
+
+                    records.sort((a, b) => b.markedAt.toMillis() - a.markedAt.toMillis());
+
+                    records.forEach(record => {
+                        const date = record.markedAt.toDate().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+                        const statusKey = record.status === 'Present' ? 'attendance_status_present' : 'attendance_status_absent';
+                        const statusText = translations[currentLanguage][statusKey];
+                        const statusClass = record.status === 'Present' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+                        
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${date}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">
+                                    ${statusText}
+                                </span>
+                            </td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+
+                } catch (err) {
+                    console.error("Error fetching attendance:", err);
+                    tableBody.innerHTML = `<tr><td colspan="2" class="text-center p-4 text-red-500">Could not load attendance.</td></tr>`;
+                }
+            }
+
+            async function generateTest() {
+                const topic = document.getElementById('test-topic').value;
+                const loader = document.getElementById('ai-test-loader');
+                const setupDiv = document.getElementById('ai-test-setup');
+                const testContainer = document.getElementById('ai-test-container');
+                const resultsContainer = document.getElementById('ai-test-results-container');
+                const errorEl = document.getElementById('ai-test-error');
+
+                if (!topic) {
+                    errorEl.textContent = translations[currentLanguage].ai_test_error_no_topic;
+                    errorEl.classList.remove('hidden');
+                    return;
+                }
+
+                loader.classList.remove('hidden');
+                setupDiv.classList.add('hidden');
+                testContainer.classList.add('hidden');
+                resultsContainer.classList.add('hidden');
+                errorEl.classList.add('hidden');
+
+                const prompt = `Generate a 5-question multiple-choice quiz on the topic of '${topic}' for a Class ${currentStudent.course} student. Provide the output as a JSON array. Each object in the array should have the following keys: 'question' (a string), 'options' (an array of 4 strings), and 'answer' (the correct option string).`;
+                
+                const payload = {
+                    contents: [{ role: "user", parts: [{ text: prompt }] }],
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: {
+                            type: "ARRAY",
+                            items: {
+                                type: "OBJECT",
+                                properties: {
+                                    "question": { "type": "STRING" },
+                                    "options": { "type": "ARRAY", "items": { "type": "STRING" } },
+                                    "answer": { "type": "STRING" }
+                                },
+                                required: ["question", "options", "answer"]
+                            }
+                        }
+                    }
+                };
+                
+                const apiKey = "AIzaSyAsN-ectG6WlzKVVLOg8A9bonp0aYVez9w"; 
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`API error: ${response.statusText}`);
+                    }
+                    
+                    const result = await response.json();
+                    
+                    if (result.candidates && result.candidates.length > 0) {
+                        const jsonText = result.candidates[0].content.parts[0].text;
+                        currentTestQuestions = JSON.parse(jsonText);
+                        renderTest(currentTestQuestions);
+                    } else {
+                        throw new Error("No content received from AI.");
+                    }
+
+                } catch (err) {
+                    console.error("AI Test Generation Error:", err);
+                    errorEl.textContent = translations[currentLanguage].ai_test_error_general;
+                    errorEl.classList.remove('hidden');
+                    setupDiv.classList.remove('hidden');
+                } finally {
+                    loader.classList.add('hidden');
+                }
+            }
+
+            function renderTest(questions) {
+                const testContainer = document.getElementById('ai-test-container');
+                testContainer.innerHTML = ''; // Clear previous test
+
+                const form = document.createElement('form');
+                form.id = 'ai-test-form';
+
+                questions.forEach((q, index) => {
+                    const questionDiv = document.createElement('div');
+                    questionDiv.className = 'mb-6 p-4 border rounded-lg';
+                    
+                    const questionP = document.createElement('p');
+                    questionP.className = 'font-semibold mb-3';
+                    questionP.textContent = `${index + 1}. ${q.question}`;
+                    questionDiv.appendChild(questionP);
+
+                    const optionsDiv = document.createElement('div');
+                    optionsDiv.className = 'space-y-2';
+
+                    q.options.forEach((option, optIndex) => {
+                        const optionLabel = document.createElement('label');
+                        optionLabel.className = 'flex items-center p-2 rounded-md hover:bg-gray-100 cursor-pointer';
+                        
+                        const radioInput = document.createElement('input');
+                        radioInput.type = 'radio';
+                        radioInput.name = `question-${index}`;
+                        radioInput.value = option;
+                        radioInput.className = 'mr-3';
+                        radioInput.required = true;
+
+                        optionLabel.appendChild(radioInput);
+                        optionLabel.append(option); // Append text node
+                        optionsDiv.appendChild(optionLabel);
+                    });
+
+                    questionDiv.appendChild(optionsDiv);
+                    form.appendChild(questionDiv);
+                });
+
+                const submitButton = document.createElement('button');
+                submitButton.type = 'submit';
+                submitButton.id = 'submit-test-btn';
+                submitButton.className = 'w-full sm:w-auto bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-700';
+                submitButton.innerHTML = `<span data-lang-key="ai_test_submit_btn">${translations[currentLanguage].ai_test_submit_btn}</span>`;
+                form.appendChild(submitButton);
+
+                form.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    submitTest();
+                });
+
+                testContainer.appendChild(form);
+                testContainer.classList.remove('hidden');
+            }
+
+            function submitTest() {
+                const form = document.getElementById('ai-test-form');
+                const formData = new FormData(form);
+                let score = 0;
+                const userAnswers = [];
+
+                for (let i = 0; i < currentTestQuestions.length; i++) {
+                    const userAnswer = formData.get(`question-${i}`);
+                    userAnswers.push(userAnswer);
+                    if (userAnswer === currentTestQuestions[i].answer) {
+                        score++;
+                    }
+                }
+                displayResults(score, userAnswers);
+            }
+
+            function displayResults(score, userAnswers) {
+                const testContainer = document.getElementById('ai-test-container');
+                const resultsContainer = document.getElementById('ai-test-results-container');
+                const setupDiv = document.getElementById('ai-test-setup');
+
+                testContainer.classList.add('hidden');
+                resultsContainer.innerHTML = ''; // Clear previous results
+
+                const resultsTitle = document.createElement('h3');
+                resultsTitle.className = 'text-2xl font-bold mb-4';
+                resultsTitle.innerHTML = `<span data-lang-key="ai_test_results_title">${translations[currentLanguage].ai_test_results_title}</span>`;
+                resultsContainer.appendChild(resultsTitle);
+
+                const scoreP = document.createElement('p');
+                scoreP.className = 'text-lg font-semibold mb-6';
+                scoreP.innerHTML = `<span data-lang-key="ai_test_score">${translations[currentLanguage].ai_test_score}</span> ${score} / ${currentTestQuestions.length}`;
+                resultsContainer.appendChild(scoreP);
+
+                currentTestQuestions.forEach((q, index) => {
+                    const questionDiv = document.createElement('div');
+                    questionDiv.className = 'mb-4 p-4 border rounded-lg';
+                    
+                    const questionP = document.createElement('p');
+                    questionP.className = 'font-semibold mb-2';
+                    questionP.textContent = `${index + 1}. ${q.question}`;
+                    questionDiv.appendChild(questionP);
+
+                    const userAnswer = userAnswers[index];
+                    const correctAnswer = q.answer;
+
+                    q.options.forEach(option => {
+                        const optionP = document.createElement('p');
+                        optionP.className = 'p-2 rounded-md';
+                        let text = option;
+
+                        if (option === correctAnswer) {
+                            optionP.classList.add('bg-green-100', 'text-green-800', 'font-bold');
+                            text += ' (Correct Answer)';
+                        } else if (option === userAnswer) {
+                            optionP.classList.add('bg-red-100', 'text-red-800');
+                            text += ' (Your Answer)';
+                        }
+                        optionP.textContent = text;
+                        questionDiv.appendChild(optionP);
+                    });
+                    resultsContainer.appendChild(questionDiv);
+                });
+                
+                const takeAnotherTestBtn = document.createElement('button');
+                takeAnotherTestBtn.className = 'mt-6 w-full sm:w-auto bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700';
+                takeAnotherTestBtn.textContent = 'Take Another Test';
+                takeAnotherTestBtn.onclick = () => {
+                    resultsContainer.classList.add('hidden');
+                    setupDiv.classList.remove('hidden');
+                    document.getElementById('test-topic').value = '';
+                };
+                resultsContainer.appendChild(takeAnotherTestBtn);
+
+
+                resultsContainer.classList.remove('hidden');
+            }
+
+
+            // --- Initialize App ---
+            renderLanguage('en'); // Set initial language
+            document.getElementById('logo-container').addEventListener('click', () => navigateTo('home'));
+            initializeAndAuth();
+        });
+    </script>
+</body>
+</html>
