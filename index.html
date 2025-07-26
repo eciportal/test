@@ -1223,7 +1223,7 @@
                 document.getElementById('generate-test-btn').addEventListener('click', generateTest);
             }
 
-            // --- Notification Permission & Token Retrieval ---
+            // --- Notification Permission & Token Retrieval (CORRECTED) ---
             async function requestNotificationPermission() {
                 if (!('Notification' in window)) {
                     console.log("This browser does not support desktop notification");
@@ -1242,9 +1242,11 @@
                         if (currentToken) {
                             console.log('FCM Token:', currentToken);
                             // Send this token to your server and associate it with the current user
-                            const tokenRef = doc(db, "fcmTokens", currentStudent.docId);
-                            await setDoc(tokenRef, { token: currentToken, studentId: currentStudent.studentId });
-                            console.log('FCM token saved for student.');
+                            if (currentStudent && currentStudent.docId) {
+                                const tokenRef = doc(db, "fcmTokens", currentStudent.docId);
+                                await setDoc(tokenRef, { token: currentToken, studentId: currentStudent.studentId });
+                                console.log('FCM token saved for student.');
+                            }
                         } else {
                             console.log('No registration token available. Request permission to generate one.');
                         }
@@ -1256,7 +1258,7 @@
                 }
             }
 
-            // --- NEW: Foreground Message Handler ---
+            // --- Foreground Message Handler ---
             function setupForegroundMessageHandler() {
                 onMessage(messaging, (payload) => {
                     console.log('Foreground message received.', payload);
