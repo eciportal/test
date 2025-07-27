@@ -104,6 +104,17 @@
             flex-shrink: 0;
             display: block; /* Always block for the slider to work */
         }
+        /* Sliding highlighter for tabs */
+        #dashboard-tabs-nav {
+            position: relative;
+        }
+        #tab-highlighter {
+            position: absolute;
+            bottom: 0;
+            height: 2px;
+            background-color: #4f46e5; /* indigo-600 */
+            transition: left 0.3s ease-in-out, width 0.3s ease-in-out;
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -419,23 +430,24 @@
                 <h2 id="dashboard-welcome" class="text-3xl font-bold mb-6"></h2>
                 
                 <div class="border-b border-gray-200 mb-6">
-                    <nav class="-mb-px flex space-x-6 overflow-x-auto" aria-label="Tabs">
-                        <button class="dashboard-tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-indigo-500 text-indigo-600" data-tab="details">
+                    <nav id="dashboard-tabs-nav" class="-mb-px flex space-x-6 overflow-x-auto" aria-label="Tabs">
+                        <button class="dashboard-tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" data-tab="details">
                             <span data-lang-key="dashboard_tab_details">My Details</span>
                         </button>
-                        <button class="dashboard-tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 flex items-center space-x-2" data-tab="announcements">
+                        <button class="dashboard-tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2" data-tab="announcements">
                             <span data-lang-key="dashboard_tab_announcements">Announcements</span>
                             <span id="announcements-badge" class="hidden bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full" data-lang-key="announcements_badge_new">New</span>
                         </button>
-                        <button class="dashboard-tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="attendance">
+                        <button class="dashboard-tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" data-tab="attendance">
                             <span data-lang-key="dashboard_tab_attendance">Attendance</span>
                         </button>
-                        <button class="dashboard-tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="assigned-tests">
+                        <button class="dashboard-tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" data-tab="assigned-tests">
                             <span data-lang-key="dashboard_tab_assigned_tests">Assigned Tests</span>
                         </button>
-                        <button class="dashboard-tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="ai-test">
+                        <button class="dashboard-tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" data-tab="ai-test">
                             <span data-lang-key="dashboard_tab_ai_test">Practice Test</span>
                         </button>
+                        <div id="tab-highlighter"></div>
                     </nav>
                 </div>
 
@@ -1032,7 +1044,7 @@
                     }
 
                     const swipeThreshold = 50; // Minimum distance for a swipe
-                    const currentTabEl = document.querySelector('.dashboard-tab-btn.border-indigo-500');
+                    const currentTabEl = document.querySelector('.dashboard-tab-btn.text-indigo-600');
                     const currentTabId = currentTabEl.dataset.tab;
                     const currentIndex = dashboardTabs.indexOf(currentTabId);
 
@@ -1267,7 +1279,22 @@
                     </div>
                 `;
                 renderLanguage(currentLanguage);
+                // Set initial tab and highlighter position
                 switchDashboardTab('details');
+                // Set a min-height for the wrapper to prevent footer jumping
+                setTimeout(setDashboardWrapperHeight, 100);
+            }
+            
+            function setDashboardWrapperHeight() {
+                const wrapper = document.getElementById('dashboard-tab-wrapper');
+                const contents = document.querySelectorAll('.dashboard-tab-content');
+                let maxHeight = 0;
+                contents.forEach(content => {
+                    if (content.scrollHeight > maxHeight) {
+                        maxHeight = content.scrollHeight;
+                    }
+                });
+                wrapper.style.minHeight = `${maxHeight}px`;
             }
 
             function switchDashboardTab(tabId) {
@@ -1279,14 +1306,21 @@
                     document.getElementById('announcements-badge').classList.add('hidden');
                 }
 
-                document.querySelectorAll('.dashboard-tab-btn').forEach(btn => {
-                    btn.classList.remove('border-indigo-500', 'text-indigo-600');
-                    btn.classList.add('border-transparent', 'text-gray-500');
-                });
+                const allTabs = document.querySelectorAll('.dashboard-tab-btn');
                 const activeBtn = document.querySelector(`.dashboard-tab-btn[data-tab="${tabId}"]`);
+                
+                allTabs.forEach(btn => {
+                    btn.classList.remove('text-indigo-600');
+                    btn.classList.add('text-gray-500', 'hover:text-gray-700');
+                });
+                
                 if(activeBtn) {
-                    activeBtn.classList.add('border-indigo-500', 'text-indigo-600');
-                    activeBtn.classList.remove('border-transparent', 'text-gray-500');
+                    activeBtn.classList.add('text-indigo-600');
+                    activeBtn.classList.remove('text-gray-500', 'hover:text-gray-700');
+                    // Move Highlighter
+                    const highlighter = document.getElementById('tab-highlighter');
+                    highlighter.style.left = `${activeBtn.offsetLeft}px`;
+                    highlighter.style.width = `${activeBtn.offsetWidth}px`;
                 }
 
                 // Slide the content
