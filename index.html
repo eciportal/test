@@ -8,12 +8,21 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#4f46e5">
 
+    <!-- iOS PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Eklavya">
+    <link rel="apple-touch-icon" href="https://placehold.co/192x192/4f46e5/ffffff?text=E">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         /* Custom styles for a clean, classic look */
+        html {
+            scroll-behavior: smooth;
+        }
         body {
             font-family: 'Inter', sans-serif;
             display: flex;
@@ -110,10 +119,16 @@
         }
         #tab-highlighter {
             position: absolute;
-            bottom: 0;
-            height: 2px;
             background-color: #4f46e5; /* indigo-600 */
-            transition: left 0.3s ease-in-out, width 0.3s ease-in-out;
+            border-radius: 9999px; /* rounded-full */
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 0;
+        }
+        .dashboard-tab-btn {
+            transition: color 0.3s ease-in-out;
+            position: relative;
+            z-index: 10;
+            border-color: transparent !important; /* Remove the default bottom border */
         }
     </style>
 </head>
@@ -123,14 +138,14 @@
 
     <header class="bg-white shadow-md sticky top-0 z-50">
         <div class="container mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
-            <div id="logo-container" class="flex items-center space-x-3 cursor-pointer">
+            <a href="#" id="logo-container" class="flex items-center space-x-3 cursor-pointer">
                 <svg class="h-8 w-8 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
                 </svg>
                 <div class="text-lg md:text-2xl font-bold text-indigo-600">
                     <span data-lang-key="institute_name">Eklavya Coaching Institute</span>
                 </div>
-            </div>
+            </a>
             
             <nav class="hidden md:flex space-x-6 items-center">
                 <a href="#" class="nav-link text-gray-600 hover:text-indigo-600" data-page="home"><span data-lang-key="nav_home">Home</span></a>
@@ -263,7 +278,7 @@
                 <h2 class="text-3xl font-bold text-center mb-12"><span data-lang-key="courses_title">Our Programs</span></h2>
                 <div class="grid md:grid-cols-3 gap-8">
                     <div class="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col">
-                        <img src="https://placehold.co/600x400/3498db/ffffff?text=Middle+School" alt="Middle School" class="w-full h-48 object-cover">
+                        <img src="https://placehold.co/600x400/3498db/ffffff?text=Middle+School" alt="Middle School Program" class="w-full h-48 object-cover">
                         <div class="p-6 flex flex-col flex-grow">
                             <h3 class="text-xl font-semibold mb-2"><span data-lang-key="course_1_title">Middle School (Class 6-8)</span></h3>
                             <p class="text-gray-700 mb-1"><span class="font-semibold" data-lang-key="subjects">Subjects:</span> <span data-lang-key="course_1_subjects">Maths, Science, English</span></p>
@@ -271,7 +286,7 @@
                         </div>
                     </div>
                     <div class="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col">
-                         <img src="https://placehold.co/600x400/2ecc71/ffffff?text=High+School" alt="High School" class="w-full h-48 object-cover">
+                         <img src="https://placehold.co/600x400/2ecc71/ffffff?text=High+School" alt="High School Program" class="w-full h-48 object-cover">
                         <div class="p-6 flex flex-col flex-grow">
                             <h3 class="text-xl font-semibold mb-2"><span data-lang-key="course_2_title">High School (Class 9-10)</span></h3>
                             <p class="text-gray-700 mb-1"><span class="font-semibold" data-lang-key="subjects">Subjects:</span> <span data-lang-key="course_2_subjects">Maths, Science, SST</span></p>
@@ -279,7 +294,7 @@
                         </div>
                     </div>
                     <div class="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col">
-                         <img src="https://placehold.co/600x400/e74c3c/ffffff?text=Senior+Secondary" alt="Senior Secondary" class="w-full h-48 object-cover">
+                         <img src="https://placehold.co/600x400/e74c3c/ffffff?text=Senior+Secondary" alt="Senior Secondary Program" class="w-full h-48 object-cover">
                         <div class="p-6 flex flex-col flex-grow">
                             <h3 class="text-xl font-semibold mb-2"><span data-lang-key="course_3_title">Senior Secondary (Class 11-12)</span></h3>
                             <p class="text-gray-700 mb-1"><span class="font-semibold" data-lang-key="subjects">Subjects:</span> <span data-lang-key="course_3_subjects">PCM / PCB</span></p>
@@ -371,7 +386,7 @@
                     <form id="signup-form" class="space-y-6">
                         <div>
                             <label for="mobile-signup" class="text-sm font-semibold text-gray-600"><span data-lang-key="signup_mobile_label">Enter Your Registered Mobile Number</span></label>
-                            <input id="mobile-signup" type="tel" class="w-full px-4 py-2 mt-2 text-lg border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500" placeholder="e.g., 7068059328">
+                            <input id="mobile-signup" type="tel" class="w-full px-4 py-2 mt-2 text-lg border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500" placeholder="e.g., 9876543210">
                         </div>
                         <div>
                             <label for="secret-code-signup" class="text-sm font-semibold text-gray-600"><span data-lang-key="login_secret_code">Secret Code</span></label>
@@ -565,7 +580,7 @@
         </svg>
     </a>
 
-    <a href="https://wa.me/917068059328?text=Hello%2C%20I%20want%20to%20inquire%20about%20your%20coaching%20classes.%20Please%20share%20details." aria-label="Chat on WhatsApp" target="_blank" rel="noopener noreferrer" class="fixed bottom-5 right-5 z-50 bg-green-500 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:bg-green-600 transition-transform transform hover:scale-110">
+    <a href="https://wa.me/919876543210?text=Hello%2C%20I%20want%20to%20inquire%20about%20your%20coaching%20classes.%20Please%20share%20details." aria-label="Chat on WhatsApp" target="_blank" rel="noopener noreferrer" class="fixed bottom-5 right-5 z-50 bg-green-500 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:bg-green-600 transition-transform transform hover:scale-110">
         <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
             <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.894 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 4.315 1.731 6.086l-.515 1.876 1.905-.498z"/>
         </svg>
@@ -952,6 +967,11 @@
             const studentDropdownMenu = document.getElementById('student-dropdown-menu');
             studentDropdownButton.addEventListener('click', () => {
                 studentDropdownMenu.classList.toggle('hidden');
+            });
+             document.addEventListener('click', (e) => {
+                if (!studentDropdownButton.contains(e.target) && !studentDropdownMenu.contains(e.target)) {
+                    studentDropdownMenu.classList.add('hidden');
+                }
             });
             
             const contactForm = document.getElementById('contact-form');
