@@ -37,12 +37,6 @@
             height: 24px;
             animation: spin 1s linear infinite;
         }
-        .dashboard-tab-content {
-            display: none;
-        }
-        .dashboard-tab-content.active {
-            display: block;
-        }
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
@@ -95,6 +89,20 @@
             padding: 0.5rem;
             z-index: 2000;
             font-size: 0.875rem;
+        }
+        /* Styles for Swipeable Tabs */
+        #dashboard-tab-wrapper {
+            overflow: hidden;
+            width: 100%;
+        }
+        #dashboard-tab-slider {
+            display: flex;
+            transition: transform 0.3s ease-in-out;
+        }
+        .dashboard-tab-content {
+            width: 100%;
+            flex-shrink: 0;
+            display: block; /* Always block for the slider to work */
         }
     </style>
 </head>
@@ -407,7 +415,7 @@
         </div>
 
         <div id="page-dashboard" class="page">
-            <div id="dashboard-container" class="container mx-auto px-4 sm:px-6 py-12 md:py-16">
+            <div class="container mx-auto px-4 sm:px-6 py-12 md:py-16">
                 <h2 id="dashboard-welcome" class="text-3xl font-bold mb-6"></h2>
                 
                 <div class="border-b border-gray-200 mb-6">
@@ -431,64 +439,62 @@
                     </nav>
                 </div>
 
-                <div id="tab-content-details" class="dashboard-tab-content active">
-                    <div id="student-details" class="bg-white p-6 rounded-lg shadow-md mb-8"></div>
-                    <button id="edit-profile-btn" class="bg-blue-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-blue-600" data-page="edit-profile"><span data-lang-key="dashboard_edit_profile">Edit Profile</span></button>
-                </div>
-                
-                <div id="tab-content-announcements" class="dashboard-tab-content">
-                    <h3 class="text-2xl font-bold mb-4" data-lang-key="announcements_title">Latest Announcements</h3>
-                    <div id="announcements-container" class="space-y-4">
+                <div id="dashboard-tab-wrapper">
+                    <div id="dashboard-tab-slider">
+                        <div id="tab-content-details" class="dashboard-tab-content">
+                            <div id="student-details" class="bg-white p-6 rounded-lg shadow-md mb-8"></div>
+                            <button id="edit-profile-btn" class="bg-blue-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-blue-600" data-page="edit-profile"><span data-lang-key="dashboard_edit_profile">Edit Profile</span></button>
                         </div>
-                </div>
+                        
+                        <div id="tab-content-announcements" class="dashboard-tab-content">
+                            <h3 class="text-2xl font-bold mb-4" data-lang-key="announcements_title">Latest Announcements</h3>
+                            <div id="announcements-container" class="space-y-4"></div>
+                        </div>
 
-                <div id="tab-content-attendance" class="dashboard-tab-content">
-                    <h3 class="text-2xl font-bold mb-4" data-lang-key="attendance_title">My Attendance</h3>
-                    <div class="overflow-x-auto bg-white rounded-lg shadow-md">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-lang-key="attendance_th_date">Date</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-lang-key="attendance_th_status">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="attendance-table-body" class="bg-white divide-y divide-gray-200">
-                                </tbody>
-                        </table>
+                        <div id="tab-content-attendance" class="dashboard-tab-content">
+                            <h3 class="text-2xl font-bold mb-4" data-lang-key="attendance_title">My Attendance</h3>
+                            <div class="overflow-x-auto bg-white rounded-lg shadow-md">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-lang-key="attendance_th_date">Date</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-lang-key="attendance_th_status">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="attendance-table-body" class="bg-white divide-y divide-gray-200"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div id="tab-content-assigned-tests" class="dashboard-tab-content">
+                            <h3 class="text-2xl font-bold mb-4" data-lang-key="assigned_tests_title">Assigned Tests</h3>
+                            <div id="assigned-tests-container" class="space-y-4"></div>
+                            <div id="student-test-view" class="hidden mt-6"></div>
+                        </div>
+                        
+                        <div id="tab-content-ai-test" class="dashboard-tab-content">
+                            <div class="bg-white p-6 rounded-lg shadow-md">
+                                <h3 class="text-2xl font-bold mb-4" data-lang-key="ai_test_title">Practice Test</h3>
+                                <div id="ai-test-setup">
+                                    <div class="mb-4">
+                                        <label for="test-topic" class="block text-gray-700 font-semibold mb-2" data-lang-key="ai_test_topic_label">Enter a Topic</label>
+                                        <input type="text" id="test-topic" class="w-full px-3 py-2 border rounded-lg" placeholder="e.g., Photosynthesis">
+                                    </div>
+                                    <button id="generate-test-btn" class="w-full sm:w-auto bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 flex items-center justify-center">
+                                        <span data-lang-key="ai_test_generate_btn">Generate Test</span>
+                                    </button>
+                                </div>
+                                <div id="ai-test-loader" class="hidden text-center py-8">
+                                    <div class="loader mx-auto"></div>
+                                    <p class="mt-2 text-gray-600" data-lang-key="ai_test_loading">Generating your test...</p>
+                                </div>
+                                <div id="ai-test-container" class="mt-6 hidden"></div>
+                                <div id="ai-test-results-container" class="mt-6 hidden"></div>
+                                 <p id="ai-test-error" class="text-sm text-red-500 mt-4 hidden"></p>
+                            </div>
+                        </div>
                     </div>
                 </div>
-
-                <div id="tab-content-assigned-tests" class="dashboard-tab-content">
-                    <h3 class="text-2xl font-bold mb-4" data-lang-key="assigned_tests_title">Assigned Tests</h3>
-                    <div id="assigned-tests-container" class="space-y-4"></div>
-                    <div id="student-test-view" class="hidden mt-6"></div>
-                </div>
-                
-                <div id="tab-content-ai-test" class="dashboard-tab-content">
-                    <div class="bg-white p-6 rounded-lg shadow-md">
-                        <h3 class="text-2xl font-bold mb-4" data-lang-key="ai_test_title">Practice Test</h3>
-                        <div id="ai-test-setup">
-                            <div class="mb-4">
-                                <label for="test-topic" class="block text-gray-700 font-semibold mb-2" data-lang-key="ai_test_topic_label">Enter a Topic</label>
-                                <input type="text" id="test-topic" class="w-full px-3 py-2 border rounded-lg" placeholder="e.g., Photosynthesis">
-                            </div>
-                            <button id="generate-test-btn" class="w-full sm:w-auto bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 flex items-center justify-center">
-                                <span data-lang-key="ai_test_generate_btn">Generate Test</span>
-                            </button>
-                        </div>
-                        <div id="ai-test-loader" class="hidden text-center py-8">
-                            <div class="loader mx-auto"></div>
-                            <p class="mt-2 text-gray-600" data-lang-key="ai_test_loading">Generating your test...</p>
-                        </div>
-                        <div id="ai-test-container" class="mt-6 hidden">
-                            </div>
-                        <div id="ai-test-results-container" class="mt-6 hidden">
-                            </div>
-                         <p id="ai-test-error" class="text-sm text-red-500 mt-4 hidden"></p>
-                    </div>
-                </div>
-
-
             </div>
         </div>
 
@@ -1001,38 +1007,34 @@
                 });
                 
                 // Swipe navigation for dashboard
-                const dashboardContent = document.getElementById('dashboard-container');
+                const dashboardSlider = document.getElementById('dashboard-tab-slider');
                 let touchStartX = 0;
                 let touchEndX = 0;
                 const dashboardTabs = ['details', 'announcements', 'attendance', 'assigned-tests', 'ai-test'];
 
-                dashboardContent.addEventListener('touchstart', e => {
+                dashboardSlider.addEventListener('touchstart', e => {
                     touchStartX = e.changedTouches[0].screenX;
                 }, { passive: true });
 
-                dashboardContent.addEventListener('touchend', e => {
+                dashboardSlider.addEventListener('touchend', e => {
                     touchEndX = e.changedTouches[0].screenX;
                     handleSwipe();
                 }, { passive: true });
 
                 function handleSwipe() {
                     const swipeThreshold = 50; // Minimum distance for a swipe
-                    if (touchEndX < touchStartX - swipeThreshold) {
-                        // Swiped left
-                        const currentTabEl = document.querySelector('.dashboard-tab-btn.border-indigo-500');
-                        const currentTabId = currentTabEl.dataset.tab;
-                        const currentIndex = dashboardTabs.indexOf(currentTabId);
-                        const nextIndex = (currentIndex + 1) % dashboardTabs.length;
-                        switchDashboardTab(dashboardTabs[nextIndex]);
+                    const currentTabEl = document.querySelector('.dashboard-tab-btn.border-indigo-500');
+                    const currentTabId = currentTabEl.dataset.tab;
+                    const currentIndex = dashboardTabs.indexOf(currentTabId);
+
+                    if (touchEndX < touchStartX - swipeThreshold) { // Swiped left
+                        const nextIndex = Math.min(currentIndex + 1, dashboardTabs.length - 1);
+                        if(nextIndex !== currentIndex) switchDashboardTab(dashboardTabs[nextIndex]);
                     }
 
-                    if (touchEndX > touchStartX + swipeThreshold) {
-                        // Swiped right
-                        const currentTabEl = document.querySelector('.dashboard-tab-btn.border-indigo-500');
-                        const currentTabId = currentTabEl.dataset.tab;
-                        const currentIndex = dashboardTabs.indexOf(currentTabId);
-                        const prevIndex = (currentIndex - 1 + dashboardTabs.length) % dashboardTabs.length;
-                        switchDashboardTab(dashboardTabs[prevIndex]);
+                    if (touchEndX > touchStartX + swipeThreshold) { // Swiped right
+                        const prevIndex = Math.max(currentIndex - 1, 0);
+                        if(prevIndex !== currentIndex) switchDashboardTab(dashboardTabs[prevIndex]);
                     }
                 }
             }
@@ -1260,6 +1262,9 @@
             }
 
             function switchDashboardTab(tabId) {
+                const dashboardTabs = ['details', 'announcements', 'attendance', 'assigned-tests', 'ai-test'];
+                const tabIndex = dashboardTabs.indexOf(tabId);
+                
                 if (tabId === 'announcements') {
                     localStorage.setItem('lastViewedAnnouncements', new Date().getTime());
                     document.getElementById('announcements-badge').classList.add('hidden');
@@ -1275,8 +1280,9 @@
                     activeBtn.classList.remove('border-transparent', 'text-gray-500');
                 }
 
-                document.querySelectorAll('.dashboard-tab-content').forEach(content => content.classList.remove('active'));
-                document.getElementById(`tab-content-${tabId}`).classList.add('active');
+                // Slide the content
+                const slider = document.getElementById('dashboard-tab-slider');
+                slider.style.transform = `translateX(-${tabIndex * 100}%)`;
                 
                 if(tabId === 'attendance') renderAttendance();
                 if(tabId === 'assigned-tests') renderAssignedTests();
