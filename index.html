@@ -1,10 +1,3 @@
-Of course, I can help with that. Here is the updated code for the `index.html` file that includes the notification badge feature for new announcements.
-
-I've added the necessary HTML and JavaScript code to implement the badge, track when new announcements arrive, and show the badge when there's something new to see.
-
-### Updated `index.html` file:
-
-```html
 <!DOCTYPE html>
 <html lang="en" class="h-full">
 <head>
@@ -54,7 +47,7 @@ I've added the necessary HTML and JavaScript code to implement the badge, track 
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        /* Styles for the custom alert modal */
+        /* Styles for the custom alert/confirm modal */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -79,17 +72,35 @@ I've added the necessary HTML and JavaScript code to implement the badge, track 
             padding: 2rem;
             border-radius: 0.5rem;
             width: 90%;
-            max-width: 500px;
+            max-width: 600px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
             transform: scale(0.9);
             transition: transform 0.3s;
+            max-height: 90vh;
+            overflow-y: auto;
         }
         .modal-overlay.visible .modal-content {
             transform: scale(1);
         }
+        /* Offline Indicator */
+        #offline-indicator {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background-color: #ef4444; /* red-500 */
+            color: white;
+            text-align: center;
+            padding: 0.5rem;
+            z-index: 2000;
+            font-size: 0.875rem;
+        }
     </style>
 </head>
 <body class="bg-gray-50">
+
+    <div id="offline-indicator">You are currently offline. Some features may be unavailable.</div>
 
     <header class="bg-white shadow-md sticky top-0 z-50">
         <div class="container mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
@@ -123,9 +134,6 @@ I've added the necessary HTML and JavaScript code to implement the badge, track 
                          <span data-lang-key="nav_logout">Logout</span>
                      </button>
                 </div>
-                <button id="install-app-btn" class="hidden bg-green-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-green-600 transition duration-300">
-                    Install App
-                </button>
                 <div class="flex items-center space-x-2 text-sm">
                     <span>EN</span>
                     <label for="language-toggle-desktop" class="relative inline-flex items-center cursor-pointer">
@@ -399,7 +407,7 @@ I've added the necessary HTML and JavaScript code to implement the badge, track 
         </div>
 
         <div id="page-dashboard" class="page">
-            <div class="container mx-auto px-4 sm:px-6 py-12 md:py-16">
+            <div id="dashboard-container" class="container mx-auto px-4 sm:px-6 py-12 md:py-16">
                 <h2 id="dashboard-welcome" class="text-3xl font-bold mb-6"></h2>
                 
                 <div class="border-b border-gray-200 mb-6">
@@ -413,6 +421,9 @@ I've added the necessary HTML and JavaScript code to implement the badge, track 
                         </button>
                         <button class="dashboard-tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="attendance">
                             <span data-lang-key="dashboard_tab_attendance">Attendance</span>
+                        </button>
+                        <button class="dashboard-tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="assigned-tests">
+                            <span data-lang-key="dashboard_tab_assigned_tests">Assigned Tests</span>
                         </button>
                         <button class="dashboard-tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="ai-test">
                             <span data-lang-key="dashboard_tab_ai_test">Practice Test</span>
@@ -445,6 +456,12 @@ I've added the necessary HTML and JavaScript code to implement the badge, track 
                                 </tbody>
                         </table>
                     </div>
+                </div>
+
+                <div id="tab-content-assigned-tests" class="dashboard-tab-content">
+                    <h3 class="text-2xl font-bold mb-4" data-lang-key="assigned_tests_title">Assigned Tests</h3>
+                    <div id="assigned-tests-container" class="space-y-4"></div>
+                    <div id="student-test-view" class="hidden mt-6"></div>
                 </div>
                 
                 <div id="tab-content-ai-test" class="dashboard-tab-content">
@@ -538,41 +555,42 @@ I've added the necessary HTML and JavaScript code to implement the badge, track 
     
     <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
 
-    <div id="custom-alert" class="modal-overlay">
+    <div id="custom-modal" class="modal-overlay">
         <div class="modal-content">
-            <h3 id="custom-alert-title" class="text-xl font-bold mb-4 text-gray-800"></h3>
-            <p id="custom-alert-body" class="text-gray-600 mb-6"></p>
-            <button id="custom-alert-close" class="w-full bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700">
-                Close
-            </button>
+            <h3 id="custom-modal-title" class="text-xl font-bold mb-4 text-gray-800"></h3>
+            <div id="custom-modal-body" class="text-gray-600 mb-6"></div>
+            <div id="custom-modal-buttons" class="flex justify-end space-x-4">
+                <!-- Buttons will be injected here -->
+            </div>
         </div>
     </div>
+
+    <button id="add-to-home-screen-btn" class="hidden fixed bottom-5 left-5 bg-indigo-600 text-white px-4 py-3 rounded-lg shadow-lg flex items-center space-x-2">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-arrow-down-circle" viewBox="0 0 16 16">
+          <path fill-rule="evenodd" d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8zm15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v5.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V4.5z"/>
+        </svg>
+        <span>Add to Home Screen</span>
+    </button>
 
 
     <script type="module">
         // --- PWA: Service Worker Registration ---
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                // We register the PWA service worker first
                 navigator.serviceWorker.register('./firebase-messaging-sw.js')
-                    .then(registration => {
-                        console.log('FCM ServiceWorker registration successful with scope: ', registration.scope);
-                    })
-                    .catch(err => {
-                        console.log('FCM ServiceWorker registration failed: ', err);
-                    });
+                    .then(registration => console.log('FCM ServiceWorker registration successful with scope: ', registration.scope))
+                    .catch(err => console.log('FCM ServiceWorker registration failed: ', err));
             });
         }
 
         // --- Firebase Imports ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs, onSnapshot, updateDoc, getCountFromServer, Timestamp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
-        // --- Import Firebase Cloud Messaging (with onMessage) ---
+        import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs, onSnapshot, updateDoc, getCountFromServer, Timestamp, addDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
         import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-messaging.js";
 
 
-        // --- Language Data ---
+        // --- Language Data (Student-Facing Only) ---
         const translations = {
             en: {
                 institute_name: "Eklavya Coaching Institute",
@@ -580,6 +598,7 @@ I've added the necessary HTML and JavaScript code to implement the badge, track 
                 nav_courses: "Courses",
                 nav_about: "About",
                 nav_contact: "Contact",
+                nav_admin: "Admin",
                 nav_student: "Student",
                 nav_signin: "Sign In",
                 nav_signup: "Sign Up",
@@ -649,6 +668,7 @@ I've added the necessary HTML and JavaScript code to implement the badge, track 
                 dashboard_tab_details: "My Details",
                 dashboard_tab_announcements: "Announcements",
                 dashboard_tab_attendance: "Attendance",
+                dashboard_tab_assigned_tests: "Assigned Tests",
                 dashboard_tab_ai_test: "Practice Test",
                 announcements_badge_new: "New",
                 dashboard_student_details: "Student Details",
@@ -665,6 +685,10 @@ I've added the necessary HTML and JavaScript code to implement the badge, track 
                 attendance_status_present: "Present",
                 attendance_status_absent: "Absent",
                 attendance_no_data: "No attendance records found.",
+                assigned_tests_title: "Assigned Tests",
+                assigned_tests_no_data: "No tests have been assigned to your class yet.",
+                assigned_tests_take_btn: "Take Test",
+                assigned_tests_view_results_btn: "View Results",
                 ai_test_title: "Practice Test",
                 ai_test_topic_label: "Enter a Topic",
                 ai_test_generate_btn: "Generate Test",
@@ -684,6 +708,7 @@ I've added the necessary HTML and JavaScript code to implement the badge, track 
                 nav_courses: "कोर्स",
                 nav_about: "हमारे बारे में",
                 nav_contact: "संपर्क",
+                nav_admin: "एडमिन",
                 nav_student: "छात्र",
                 nav_signin: "साइन इन करें",
                 nav_signup: "साइन अप करें",
@@ -753,6 +778,7 @@ I've added the necessary HTML and JavaScript code to implement the badge, track 
                 dashboard_tab_details: "मेरे विवरण",
                 dashboard_tab_announcements: "घोषणाएँ",
                 dashboard_tab_attendance: "उपस्थिति",
+                dashboard_tab_assigned_tests: "निर्धारित टेस्ट",
                 dashboard_tab_ai_test: "प्रैक्टिस टेस्ट",
                 announcements_badge_new: "नया",
                 dashboard_student_details: "छात्र विवरण",
@@ -769,6 +795,10 @@ I've added the necessary HTML and JavaScript code to implement the badge, track 
                 attendance_status_present: "उपस्थित",
                 attendance_status_absent: "अनुपस्थित",
                 attendance_no_data: "कोई उपस्थिति रिकॉर्ड नहीं मिला।",
+                assigned_tests_title: "निर्धारित टेस्ट",
+                assigned_tests_no_data: "आपकी कक्षा को अभी तक कोई टेस्ट नहीं दिया गया है।",
+                assigned_tests_take_btn: "टेस्ट दें",
+                assigned_tests_view_results_btn: "परिणाम देखें",
                 ai_test_title: "प्रैक्टिस टेस्ट",
                 ai_test_topic_label: "एक विषय दर्ज करें",
                 ai_test_generate_btn: "टेस्ट उत्पन्न करें",
@@ -792,28 +822,28 @@ I've added the necessary HTML and JavaScript code to implement the badge, track 
         
         document.addEventListener('DOMContentLoaded', () => {
             // --- PWA: Capture the install prompt ---
-            const installBtn = document.getElementById('install-app-btn');
+            const installBtn = document.getElementById('add-to-home-screen-btn');
             window.addEventListener('beforeinstallprompt', (e) => {
-                // Prevent the mini-infobar from appearing on mobile
                 e.preventDefault();
-                // Stash the event so it can be triggered later.
                 deferredPrompt = e;
-                // Update UI to notify the user they can install the PWA
                 installBtn.classList.remove('hidden');
-                console.log('`beforeinstallprompt` event was fired.');
             });
 
             installBtn.addEventListener('click', async () => {
-                // Hide the app provided install promotion
                 installBtn.classList.add('hidden');
-                // Show the install prompt
                 deferredPrompt.prompt();
-                // Wait for the user to respond to the prompt
                 const { outcome } = await deferredPrompt.userChoice;
-                console.log(`User response to the install prompt: ${outcome}`);
-                // We've used the prompt, and can't use it again, throw it away
                 deferredPrompt = null;
             });
+
+            // --- Offline Status ---
+            const offlineIndicator = document.getElementById('offline-indicator');
+            window.addEventListener('online', () => offlineIndicator.style.display = 'none');
+            window.addEventListener('offline', () => offlineIndicator.style.display = 'block');
+            if (!navigator.onLine) {
+                offlineIndicator.style.display = 'block';
+            }
+
 
             // --- Firebase Configuration ---
             const firebaseConfig = {
@@ -833,23 +863,21 @@ I've added the necessary HTML and JavaScript code to implement the badge, track 
             const pages = document.querySelectorAll('.page');
             const navLinks = document.querySelectorAll('.nav-link');
             
-            // --- Custom Alert Modal Logic ---
-            const customAlert = document.getElementById('custom-alert');
-            const customAlertTitle = document.getElementById('custom-alert-title');
-            const customAlertBody = document.getElementById('custom-alert-body');
-            const customAlertCloseBtn = document.getElementById('custom-alert-close');
+            // --- Custom Modal Logic ---
+            const customModal = document.getElementById('custom-modal');
+            const customModalTitle = document.getElementById('custom-modal-title');
+            const customModalBody = document.getElementById('custom-modal-body');
+            const customModalButtons = document.getElementById('custom-modal-buttons');
 
             function showCustomAlert(title, body) {
-                customAlertTitle.textContent = title;
-                customAlertBody.textContent = body;
-                customAlert.classList.add('visible');
+                customModalTitle.innerHTML = title;
+                customModalBody.innerHTML = body;
+                customModalButtons.innerHTML = `<button id="custom-modal-close" class="w-full bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700">Close</button>`;
+                customModal.classList.add('visible');
+                document.getElementById('custom-modal-close').addEventListener('click', () => customModal.classList.remove('visible'));
             }
+            window.showCustomAlert = showCustomAlert;
 
-            function hideCustomAlert() {
-                customAlert.classList.remove('visible');
-            }
-            customAlertCloseBtn.addEventListener('click', hideCustomAlert);
-            
             // --- Language Switcher Logic ---
             function renderLanguage(lang) {
                 currentLanguage = lang;
@@ -872,9 +900,7 @@ I've added the necessary HTML and JavaScript code to implement the badge, track 
 
             // --- Navigation Logic ---
             function navigateTo(pageId) {
-                pages.forEach(page => {
-                    page.classList.remove('active');
-                });
+                pages.forEach(page => page.classList.remove('active'));
                 const targetPage = document.getElementById(`page-${pageId}`);
                 if (targetPage) {
                     targetPage.classList.add('active');
@@ -923,7 +949,6 @@ I've added the necessary HTML and JavaScript code to implement the badge, track 
                 const persistedStudent = localStorage.getItem('currentStudent');
                 if (persistedStudent) {
                     currentStudent = JSON.parse(persistedStudent);
-                    // Refresh student data from Firestore to ensure it's up-to-date
                     const studentDocRef = doc(db, "students", currentStudent.docId);
                     const studentDoc = await getDoc(studentDocRef);
                     if (studentDoc.exists()) {
@@ -931,9 +956,7 @@ I've added the necessary HTML and JavaScript code to implement the badge, track 
                         updateUIAfterLogin();
                         navigateTo('dashboard');
                         renderDashboard();
-                        renderAttendance();
                     } else {
-                        // If student was deleted from DB, log them out
                         logout();
                     }
                 }
@@ -945,7 +968,7 @@ I've added the necessary HTML and JavaScript code to implement the badge, track 
                     const app = initializeApp(firebaseConfig);
                     db = getFirestore(app);
                     auth = getAuth(app);
-                    messaging = getMessaging(app); // Initialize Firebase Messaging
+                    messaging = getMessaging(app);
                     
                     await signInAnonymously(auth);
 
@@ -953,7 +976,7 @@ I've added the necessary HTML and JavaScript code to implement the badge, track 
                         if (user) {
                             console.log("User is signed in:", user.uid);
                             setupEventListeners();
-                            checkForPersistedLogin(); // Check for saved login after auth is ready
+                            checkForPersistedLogin();
                         }
                     });
                 } catch (error) {
@@ -962,284 +985,208 @@ I've added the necessary HTML and JavaScript code to implement the badge, track 
             }
 
             function setupEventListeners() {
-                const loginForm = document.getElementById('login-form');
-                const loginButton = document.getElementById('login-button');
-                const studentIdInput = document.getElementById('student-id-login');
-                const secretCodeInputLogin = document.getElementById('secret-code-login');
-                const loginError = document.getElementById('login-error');
-
-                loginForm.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    const studentId = studentIdInput.value;
-                    const secretCode = secretCodeInputLogin.value;
-
-                    if (!studentId || !secretCode) {
-                        loginError.textContent = "Please fill both fields.";
-                        loginError.classList.remove('hidden');
-                        return;
-                    }
-
-                    loginButton.innerHTML = `<div class="loader mx-auto"></div>`;
-                    loginButton.disabled = true;
-                    loginError.classList.add('hidden');
-
-                    try {
-                        const studentsRef = collection(db, "students");
-                        const q = query(studentsRef, where("studentId", "==", studentId), where("secretCode", "==", secretCode));
-                        const querySnapshot = await getDocs(q);
-
-                        if (!querySnapshot.empty) {
-                            const studentDoc = querySnapshot.docs[0];
-                            currentStudent = { docId: studentDoc.id, ...studentDoc.data() };
-                            
-                            // Persist login to localStorage
-                            localStorage.setItem('currentStudent', JSON.stringify(currentStudent));
-
-                            updateUIAfterLogin();
-                            navigateTo('dashboard');
-                            renderDashboard();
-                            renderAttendance();
-                        } else {
-                            loginError.textContent = translations[currentLanguage].login_error_invalid;
-                            loginError.classList.remove('hidden');
-                        }
-                    } catch (err) {
-                        console.error("Login Error:", err);
-                        loginError.textContent = translations[currentLanguage].login_error_general;
-                        loginError.classList.remove('hidden');
-                    } finally {
-                        loginButton.innerHTML = `<span data-lang-key="login_button">${translations[currentLanguage].login_button}</span>`;
-                        loginButton.disabled = false;
-                    }
+                // All form and button event listeners
+                document.getElementById('login-form').addEventListener('submit', handleLogin);
+                document.getElementById('signup-form').addEventListener('submit', handleSignup);
+                document.getElementById('profile-form').addEventListener('submit', handleProfileCreation);
+                document.getElementById('edit-profile-form').addEventListener('submit', handleProfileUpdate);
+                document.getElementById('logout-btn-desktop').addEventListener('click', logout);
+                document.getElementById('logout-btn-mobile').addEventListener('click', logout);
+                document.getElementById('edit-profile-btn').addEventListener('click', showEditProfile);
+                document.getElementById('generate-test-btn').addEventListener('click', generatePracticeTest);
+                
+                // Dashboard Tabs
+                document.querySelectorAll('.dashboard-tab-btn').forEach(button => {
+                    button.addEventListener('click', () => switchDashboardTab(button.getAttribute('data-tab')));
                 });
                 
-                const signupForm = document.getElementById('signup-form');
-                const signupButton = document.getElementById('signup-button');
-                const mobileSignupInput = document.getElementById('mobile-signup');
-                const secretCodeSignupInput = document.getElementById('secret-code-signup');
-                const signupError = document.getElementById('signup-error');
+                // Swipe navigation for dashboard
+                const dashboardContent = document.getElementById('dashboard-container');
+                let touchStartX = 0;
+                let touchEndX = 0;
+                const dashboardTabs = ['details', 'announcements', 'attendance', 'assigned-tests', 'ai-test'];
 
-                signupForm.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    const mobile = mobileSignupInput.value;
-                    const secretCode = secretCodeSignupInput.value;
+                dashboardContent.addEventListener('touchstart', e => {
+                    touchStartX = e.changedTouches[0].screenX;
+                }, { passive: true });
 
-                    if (!mobile || !secretCode) {
-                        signupError.textContent = "Please fill both fields.";
-                        signupError.classList.remove('hidden');
-                        return;
+                dashboardContent.addEventListener('touchend', e => {
+                    touchEndX = e.changedTouches[0].screenX;
+                    handleSwipe();
+                }, { passive: true });
+
+                function handleSwipe() {
+                    const swipeThreshold = 50; // Minimum distance for a swipe
+                    if (touchEndX < touchStartX - swipeThreshold) {
+                        // Swiped left
+                        const currentTabEl = document.querySelector('.dashboard-tab-btn.border-indigo-500');
+                        const currentTabId = currentTabEl.dataset.tab;
+                        const currentIndex = dashboardTabs.indexOf(currentTabId);
+                        const nextIndex = (currentIndex + 1) % dashboardTabs.length;
+                        switchDashboardTab(dashboardTabs[nextIndex]);
                     }
 
-                    signupButton.innerHTML = `<div class="loader mx-auto"></div>`;
-                    signupButton.disabled = true;
-                    signupError.classList.add('hidden');
-
-                    try {
-                        const studentsRef = collection(db, "students");
-                        const q = query(studentsRef, where("mobile", "==", mobile), where("secretCode", "==", secretCode));
-                        const querySnapshot = await getDocs(q);
-
-                        if (!querySnapshot.empty) {
-                            const studentDoc = querySnapshot.docs[0];
-                            const studentData = studentDoc.data();
-                            if (studentData.studentId) {
-                                signupError.textContent = "This mobile number is already registered. Please Sign In.";
-                                signupError.classList.remove('hidden');
-                            } else {
-                                currentStudent = { docId: studentDoc.id, mobile: mobile };
-                                navigateTo('create-profile');
-                            }
-                        } else {
-                            signupError.textContent = "Mobile number or secret code not found in our records.";
-                            signupError.classList.remove('hidden');
-                        }
-                    } catch (err) {
-                        console.error("Signup Error:", err);
-                        signupError.textContent = translations[currentLanguage].login_error_general;
-                        signupError.classList.remove('hidden');
-                    } finally {
-                        signupButton.innerHTML = `<span data-lang-key="signup_button">${translations[currentLanguage].signup_button}</span>`;
-                        signupButton.disabled = false;
+                    if (touchEndX > touchStartX + swipeThreshold) {
+                        // Swiped right
+                        const currentTabEl = document.querySelector('.dashboard-tab-btn.border-indigo-500');
+                        const currentTabId = currentTabEl.dataset.tab;
+                        const currentIndex = dashboardTabs.indexOf(currentTabId);
+                        const prevIndex = (currentIndex - 1 + dashboardTabs.length) % dashboardTabs.length;
+                        switchDashboardTab(dashboardTabs[prevIndex]);
                     }
-                });
+                }
+            }
 
-                const profileForm = document.getElementById('profile-form');
-                const profileButton = document.getElementById('profile-button');
-                const profileError = document.getElementById('profile-error');
+            // --- AUTH & PROFILE HANDLERS ---
+            async function handleLogin(e) {
+                e.preventDefault();
+                const studentId = document.getElementById('student-id-login').value;
+                const secretCode = document.getElementById('secret-code-login').value;
+                const loginButton = document.getElementById('login-button');
+                const loginError = document.getElementById('login-error');
 
-                profileForm.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    profileButton.innerHTML = `<div class="loader mx-auto"></div>`;
-                    profileButton.disabled = true;
-                    profileError.classList.add('hidden');
+                loginButton.innerHTML = `<div class="loader mx-auto"></div>`;
+                loginButton.disabled = true;
+                loginError.classList.add('hidden');
 
-                    const studentClass = document.getElementById('profile-class').value;
+                try {
+                    const q = query(collection(db, "students"), where("studentId", "==", studentId), where("secretCode", "==", secretCode));
+                    const querySnapshot = await getDocs(q);
 
-                    try {
-                        const studentsRef = collection(db, "students");
-                        const q = query(studentsRef, where("course", "==", studentClass));
-                        const snapshot = await getCountFromServer(q);
-                        const studentCountInClass = snapshot.data().count;
-
-                        const newCount = (studentCountInClass + 1).toString().padStart(3, '0');
-                        const classCode = studentClass.toString().padStart(2, '0');
-                        const studentId = `S${classCode}${newCount}`;
-                        
-                        const studentDocRef = doc(db, "students", currentStudent.docId);
-
-                        const profileData = {
-                            name: document.getElementById('profile-name').value,
-                            fatherName: document.getElementById('profile-father-name').value,
-                            course: studentClass,
-                            studentId: studentId
-                        };
-                        
-                        await updateDoc(studentDocRef, profileData);
-
-                        currentStudent = { ...currentStudent, ...profileData };
-                        
-                        // Persist new profile to localStorage
+                    if (!querySnapshot.empty) {
+                        const studentDoc = querySnapshot.docs[0];
+                        currentStudent = { docId: studentDoc.id, ...studentDoc.data() };
                         localStorage.setItem('currentStudent', JSON.stringify(currentStudent));
-
                         updateUIAfterLogin();
                         navigateTo('dashboard');
                         renderDashboard();
-
-                    } catch (err) {
-                        console.error("Profile Save Error:", err);
-                        profileError.textContent = translations[currentLanguage].profile_error;
-                        profileError.classList.remove('hidden');
-                    } finally {
-                        profileButton.innerHTML = `<span data-lang-key="profile_button">${translations[currentLanguage].profile_button}</span>`;
-                        profileButton.disabled = false;
+                    } else {
+                        loginError.textContent = translations[currentLanguage].login_error_invalid;
+                        loginError.classList.remove('hidden');
                     }
-                });
-
-                const editProfileBtn = document.getElementById('edit-profile-btn');
-                editProfileBtn.addEventListener('click', () => {
-                    document.getElementById('edit-profile-name').value = currentStudent.name;
-                    document.getElementById('edit-profile-father-name').value = currentStudent.fatherName;
-                    document.getElementById('edit-profile-class').value = currentStudent.course;
-                    navigateTo('edit-profile');
-                });
-
-                const editProfileForm = document.getElementById('edit-profile-form');
-                const updateProfileButton = document.getElementById('update-profile-button');
-                const editProfileError = document.getElementById('edit-profile-error');
-
-                editProfileForm.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    updateProfileButton.innerHTML = `<div class="loader mx-auto"></div>`;
-                    updateProfileButton.disabled = true;
-                    editProfileError.classList.add('hidden');
-
-                    const updatedData = {
-                        name: document.getElementById('edit-profile-name').value,
-                        fatherName: document.getElementById('edit-profile-father-name').value,
-                        course: document.getElementById('edit-profile-class').value
-                    };
-
-                    try {
-                        const studentDocRef = doc(db, "students", currentStudent.docId);
-                        await updateDoc(studentDocRef, updatedData);
-                        currentStudent = { ...currentStudent, ...updatedData };
-
-                        // Update localStorage with new details
-                        localStorage.setItem('currentStudent', JSON.stringify(currentStudent));
-
-                        navigateTo('dashboard');
-                        renderDashboard();
-                    } catch (err) {
-                        console.error("Update Profile Error:", err);
-                        editProfileError.textContent = translations[currentLanguage].profile_error;
-                        editProfileError.classList.remove('hidden');
-                    } finally {
-                        updateProfileButton.innerHTML = `<span data-lang-key="edit_profile_button">${translations[currentLanguage].edit_profile_button}</span>`;
-                        updateProfileButton.disabled = false;
-                    }
-                });
-
-                document.getElementById('logout-btn-desktop').addEventListener('click', logout);
-                document.getElementById('logout-btn-mobile').addEventListener('click', logout);
-                
-                // Dashboard Tab switching logic
-                const tabButtons = document.querySelectorAll('.dashboard-tab-btn');
-                tabButtons.forEach(button => {
-                    button.addEventListener('click', () => {
-                        const tabId = button.getAttribute('data-tab');
-                        
-                        // If the announcements tab is clicked, update the last viewed time
-                        if (tabId === 'announcements') {
-                            localStorage.setItem('lastViewedAnnouncements', new Date().getTime());
-                            // Hide the badge immediately on click
-                            document.getElementById('announcements-badge').classList.add('hidden');
-                        }
-
-                        tabButtons.forEach(btn => {
-                            btn.classList.remove('border-indigo-500', 'text-indigo-600');
-                            btn.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
-                        });
-                        button.classList.add('border-indigo-500', 'text-indigo-600');
-                        button.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
-
-                        const tabContents = document.querySelectorAll('.dashboard-tab-content');
-                        tabContents.forEach(content => content.classList.remove('active'));
-                        document.getElementById(`tab-content-${tabId}`).classList.add('active');
-                    });
-                });
-
-                // AI Test Logic
-                document.getElementById('generate-test-btn').addEventListener('click', generateTest);
+                } catch (err) {
+                    loginError.textContent = translations[currentLanguage].login_error_general;
+                    loginError.classList.remove('hidden');
+                } finally {
+                    loginButton.innerHTML = `<span data-lang-key="login_button">${translations[currentLanguage].login_button}</span>`;
+                    loginButton.disabled = false;
+                }
             }
 
-            // --- Notification Permission & Token Retrieval (CORRECTED) ---
-            async function requestNotificationPermission() {
-                if (!('Notification' in window)) {
-                    console.log("This browser does not support desktop notification");
-                    return;
-                }
-                
-                const permission = await Notification.requestPermission();
-                if (permission === 'granted') {
-                    console.log('Notification permission granted.');
-                    
-                    try {
-                        // VAPID key from Firebase Console -> Project Settings -> Cloud Messaging -> Web config
-                        const vapidKey = "BDsM4U6lJ8Sl-n40vcQokWQUJbzz9cB3eSjHB6G1GhFSfcyXcUG0E85m3OWqEy34sKEjTK6uXuy5A-dCMQyxHi8";
-                        const currentToken = await getToken(messaging, { vapidKey: vapidKey });
-                        
-                        if (currentToken) {
-                            console.log('FCM Token:', currentToken);
-                            // Send this token to your server and associate it with the current user
-                            if (currentStudent && currentStudent.docId) {
-                                const tokenRef = doc(db, "fcmTokens", currentStudent.docId);
-                                await setDoc(tokenRef, { token: currentToken, studentId: currentStudent.studentId });
-                                console.log('FCM token saved for student.');
-                            }
+            async function handleSignup(e) {
+                e.preventDefault();
+                const mobile = document.getElementById('mobile-signup').value;
+                const secretCode = document.getElementById('secret-code-signup').value;
+                const signupButton = document.getElementById('signup-button');
+                const signupError = document.getElementById('signup-error');
+
+                signupButton.innerHTML = `<div class="loader mx-auto"></div>`;
+                signupButton.disabled = true;
+                signupError.classList.add('hidden');
+
+                try {
+                    const q = query(collection(db, "students"), where("mobile", "==", mobile), where("secretCode", "==", secretCode));
+                    const querySnapshot = await getDocs(q);
+
+                    if (!querySnapshot.empty) {
+                        const studentDoc = querySnapshot.docs[0];
+                        if (studentDoc.data().studentId) {
+                            signupError.textContent = "This mobile number is already registered. Please Sign In.";
+                            signupError.classList.remove('hidden');
                         } else {
-                            console.log('No registration token available. Request permission to generate one.');
+                            currentStudent = { docId: studentDoc.id, mobile: mobile };
+                            navigateTo('create-profile');
                         }
-                    } catch (err) {
-                        console.error('An error occurred while retrieving token. ', err);
+                    } else {
+                        signupError.textContent = "Mobile number or secret code not found.";
+                        signupError.classList.remove('hidden');
                     }
-                } else {
-                    console.log('Notification permission denied.');
+                } catch (err) {
+                    signupError.textContent = translations[currentLanguage].login_error_general;
+                    signupError.classList.remove('hidden');
+                } finally {
+                    signupButton.innerHTML = `<span data-lang-key="signup_button">${translations[currentLanguage].signup_button}</span>`;
+                    signupButton.disabled = false;
                 }
             }
 
-            // --- Foreground Message Handler ---
-            function setupForegroundMessageHandler() {
-                onMessage(messaging, (payload) => {
-                    console.log('Foreground message received.', payload);
-                    const notificationTitle = payload.notification.title;
-                    const notificationBody = payload.notification.body;
+            async function handleProfileCreation(e) {
+                e.preventDefault();
+                const profileButton = document.getElementById('profile-button');
+                const profileError = document.getElementById('profile-error');
+                profileButton.innerHTML = `<div class="loader mx-auto"></div>`;
+                profileButton.disabled = true;
+                profileError.classList.add('hidden');
+
+                const studentClass = document.getElementById('profile-class').value;
+
+                try {
+                    const q = query(collection(db, "students"), where("course", "==", studentClass));
+                    const snapshot = await getCountFromServer(q);
+                    const studentCountInClass = snapshot.data().count;
+                    const newCount = (studentCountInClass + 1).toString().padStart(3, '0');
+                    const classCode = studentClass.toString().padStart(2, '0');
+                    const studentId = `S${classCode}${newCount}`;
                     
-                    // Use the custom modal instead of a disruptive alert
-                    showCustomAlert(notificationTitle, notificationBody);
-                });
+                    const profileData = {
+                        name: document.getElementById('profile-name').value,
+                        fatherName: document.getElementById('profile-father-name').value,
+                        course: studentClass,
+                        studentId: studentId
+                    };
+                    
+                    await updateDoc(doc(db, "students", currentStudent.docId), profileData);
+                    currentStudent = { ...currentStudent, ...profileData };
+                    localStorage.setItem('currentStudent', JSON.stringify(currentStudent));
+                    updateUIAfterLogin();
+                    navigateTo('dashboard');
+                    renderDashboard();
+                } catch (err) {
+                    profileError.textContent = translations[currentLanguage].profile_error;
+                    profileError.classList.remove('hidden');
+                } finally {
+                    profileButton.innerHTML = `<span data-lang-key="profile_button">${translations[currentLanguage].profile_button}</span>`;
+                    profileButton.disabled = false;
+                }
             }
 
+            function showEditProfile() {
+                document.getElementById('edit-profile-name').value = currentStudent.name;
+                document.getElementById('edit-profile-father-name').value = currentStudent.fatherName;
+                document.getElementById('edit-profile-class').value = currentStudent.course;
+                navigateTo('edit-profile');
+            }
 
+            async function handleProfileUpdate(e) {
+                e.preventDefault();
+                const updateButton = document.getElementById('update-profile-button');
+                const editError = document.getElementById('edit-profile-error');
+                updateButton.innerHTML = `<div class="loader mx-auto"></div>`;
+                updateButton.disabled = true;
+                editError.classList.add('hidden');
+
+                const updatedData = {
+                    name: document.getElementById('edit-profile-name').value,
+                    fatherName: document.getElementById('edit-profile-father-name').value,
+                    course: document.getElementById('edit-profile-class').value
+                };
+
+                try {
+                    await updateDoc(doc(db, "students", currentStudent.docId), updatedData);
+                    currentStudent = { ...currentStudent, ...updatedData };
+                    localStorage.setItem('currentStudent', JSON.stringify(currentStudent));
+                    navigateTo('dashboard');
+                    renderDashboard();
+                } catch (err) {
+                    editError.textContent = translations[currentLanguage].profile_error;
+                    editError.classList.remove('hidden');
+                } finally {
+                    updateButton.innerHTML = `<span data-lang-key="edit_profile_button">${translations[currentLanguage].edit_profile_button}</span>`;
+                    updateButton.disabled = false;
+                }
+            }
+
+            // --- UI STATE MANAGEMENT ---
             function updateUIAfterLogin() {
                 document.getElementById('auth-links-desktop').classList.add('hidden');
                 document.getElementById('user-links-desktop').classList.remove('hidden');
@@ -1249,42 +1196,57 @@ I've added the necessary HTML and JavaScript code to implement the badge, track 
                 document.getElementById('user-links-mobile').classList.remove('hidden');
                 document.getElementById('welcome-user-mobile').textContent = `${translations[currentLanguage].dashboard_welcome} ${currentStudent.name}`;
 
-                // Request notification permission and get FCM token after successful login
                 requestNotificationPermission();
-                // Setup the real-time listener to display announcements on the page
                 setupAnnouncementsListener();
-                // Setup the foreground message handler to show popups
                 setupForegroundMessageHandler();
             }
 
             function updateUIAfterLogout() {
                 document.getElementById('auth-links-desktop').classList.remove('hidden');
                 document.getElementById('user-links-desktop').classList.add('hidden');
-                
                 document.getElementById('auth-links-mobile').classList.remove('hidden');
                 document.getElementById('user-links-mobile').classList.add('hidden');
             }
 
             function logout() {
                 currentStudent = null;
-                // Remove the persisted login from localStorage
                 localStorage.removeItem('currentStudent');
-                // Detach the real-time listener
-                if (announcementsListener) {
-                    announcementsListener();
-                }
+                if (announcementsListener) announcementsListener();
                 updateUIAfterLogout();
                 document.getElementById('announcements-badge').classList.add('hidden');
                 navigateTo('home');
             }
+            
+            // --- NOTIFICATIONS ---
+            async function requestNotificationPermission() {
+                if (!('Notification' in window)) return;
+                const permission = await Notification.requestPermission();
+                if (permission === 'granted') {
+                    try {
+                        const vapidKey = "BDsM4U6lJ8Sl-n40vcQokWQUJbzz9cB3eSjHB6G1GhFSfcyXcUG0E85m3OWqEy34sKEjTK6uXuy5A-dCMQyxHi8";
+                        const currentToken = await getToken(messaging, { vapidKey });
+                        if (currentToken) {
+                            await setDoc(doc(db, "fcmTokens", currentStudent.docId), { token: currentToken, studentId: currentStudent.studentId });
+                        }
+                    } catch (err) {
+                        console.error('An error occurred while retrieving token. ', err);
+                    }
+                }
+            }
 
+            function setupForegroundMessageHandler() {
+                onMessage(messaging, (payload) => {
+                    showCustomAlert(payload.notification.title, payload.notification.body);
+                    if(document.getElementById('page-dashboard').classList.contains('active')) {
+                        renderAssignedTests();
+                    }
+                });
+            }
+
+            // --- DASHBOARD ---
             function renderDashboard() {
-                const welcomeEl = document.getElementById('dashboard-welcome');
-                const detailsEl = document.getElementById('student-details');
-
-                welcomeEl.innerHTML = `<span data-lang-key="dashboard_welcome">Welcome,</span> ${currentStudent.name}!`;
-                
-                detailsEl.innerHTML = `
+                document.getElementById('dashboard-welcome').innerHTML = `<span data-lang-key="dashboard_welcome">Welcome,</span> ${currentStudent.name}!`;
+                document.getElementById('student-details').innerHTML = `
                     <h3 class="text-xl font-semibold mb-4" data-lang-key="dashboard_student_details">Student Details</h3>
                     <div class="space-y-2">
                         <p><strong data-lang-key="dashboard_name">Name:</strong> ${currentStudent.name}</p>
@@ -1294,41 +1256,53 @@ I've added the necessary HTML and JavaScript code to implement the badge, track 
                     </div>
                 `;
                 renderLanguage(currentLanguage);
+                switchDashboardTab('details');
             }
 
-            // This function handles displaying announcements and the "New" badge.
+            function switchDashboardTab(tabId) {
+                if (tabId === 'announcements') {
+                    localStorage.setItem('lastViewedAnnouncements', new Date().getTime());
+                    document.getElementById('announcements-badge').classList.add('hidden');
+                }
+
+                document.querySelectorAll('.dashboard-tab-btn').forEach(btn => {
+                    btn.classList.remove('border-indigo-500', 'text-indigo-600');
+                    btn.classList.add('border-transparent', 'text-gray-500');
+                });
+                const activeBtn = document.querySelector(`.dashboard-tab-btn[data-tab="${tabId}"]`);
+                if(activeBtn) {
+                    activeBtn.classList.add('border-indigo-500', 'text-indigo-600');
+                    activeBtn.classList.remove('border-transparent', 'text-gray-500');
+                }
+
+                document.querySelectorAll('.dashboard-tab-content').forEach(content => content.classList.remove('active'));
+                document.getElementById(`tab-content-${tabId}`).classList.add('active');
+                
+                if(tabId === 'attendance') renderAttendance();
+                if(tabId === 'assigned-tests') renderAssignedTests();
+            }
+
             function setupAnnouncementsListener() {
                 const container = document.getElementById('announcements-container');
-                const announcementsRef = collection(db, "announcements");
-                const q = query(announcementsRef);
+                const q = query(collection(db, "announcements"));
 
                 if (announcementsListener) announcementsListener();
 
                 announcementsListener = onSnapshot(q, (querySnapshot) => {
                     let hasNewAnnouncements = false;
                     const lastViewed = localStorage.getItem('lastViewedAnnouncements') || 0;
-
                     const announcements = [];
                     querySnapshot.forEach(doc => {
                         const announcement = { id: doc.id, ...doc.data() };
                         announcements.push(announcement);
-                        // Check if announcement is newer than the last time the user viewed the page
                         if (announcement.postDate && announcement.postDate.toMillis() > lastViewed) {
                             hasNewAnnouncements = true;
                         }
                     });
                     
                     announcements.sort((a, b) => (b.postDate?.toMillis() || 0) - (a.postDate?.toMillis() || 0));
+                    document.getElementById('announcements-badge').classList.toggle('hidden', !hasNewAnnouncements);
 
-                    // Update the badge visibility
-                    const badge = document.getElementById('announcements-badge');
-                    if (hasNewAnnouncements) {
-                        badge.classList.remove('hidden');
-                    } else {
-                        badge.classList.add('hidden');
-                    }
-
-                    // Render the announcements list
                     container.innerHTML = '';
                     if (announcements.length === 0) {
                         container.innerHTML = `<p data-lang-key="announcements_no_data">${translations[currentLanguage].announcements_no_data}</p>`;
@@ -1350,14 +1324,11 @@ I've added the necessary HTML and JavaScript code to implement the badge, track 
                 });
             }
 
-
             async function renderAttendance() {
                 const tableBody = document.getElementById('attendance-table-body');
                 tableBody.innerHTML = `<tr><td colspan="2" class="text-center p-4"><div class="loader mx-auto"></div></td></tr>`;
-
                 try {
-                    const attendanceRef = collection(db, "attendance");
-                    const q = query(attendanceRef, where("studentId", "==", currentStudent.docId));
+                    const q = query(collection(db, "attendance"), where("studentId", "==", currentStudent.docId));
                     const querySnapshot = await getDocs(q);
 
                     if (querySnapshot.empty) {
@@ -1366,57 +1337,255 @@ I've added the necessary HTML and JavaScript code to implement the badge, track 
                     }
 
                     tableBody.innerHTML = '';
-                    const records = [];
-                    querySnapshot.forEach(doc => records.push(doc.data()));
-
+                    const records = querySnapshot.docs.map(doc => doc.data());
                     records.sort((a, b) => b.markedAt.toMillis() - a.markedAt.toMillis());
 
                     records.forEach(record => {
                         const date = record.markedAt.toDate().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
                         const statusKey = record.status === 'Present' ? 'attendance_status_present' : 'attendance_status_absent';
-                        const statusText = translations[currentLanguage][statusKey];
                         const statusClass = record.status === 'Present' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
-                        
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${date}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">
-                                    ${statusText}
-                                </span>
-                            </td>
-                        `;
-                        tableBody.appendChild(row);
+                        tableBody.innerHTML += `
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${date}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">${translations[currentLanguage][statusKey]}</span>
+                                </td>
+                            </tr>`;
                     });
-
                 } catch (err) {
-                    console.error("Error fetching attendance:", err);
                     tableBody.innerHTML = `<tr><td colspan="2" class="text-center p-4 text-red-500">Could not load attendance.</td></tr>`;
                 }
             }
 
-            async function generateTest() {
-                const topic = document.getElementById('test-topic').value;
-                const loader = document.getElementById('ai-test-loader');
-                const setupDiv = document.getElementById('ai-test-setup');
-                const testContainer = document.getElementById('ai-test-container');
-                const resultsContainer = document.getElementById('ai-test-results-container');
-                const errorEl = document.getElementById('ai-test-error');
+            // --- STUDENT TEST-TAKING ---
+            async function renderAssignedTests() {
+                const container = document.getElementById('assigned-tests-container');
+                container.innerHTML = `<div class="loader mx-auto"></div>`;
+                try {
+                    // 1. Fetch all tests for the student's class
+                    const testsQuery = query(collection(db, "tests"), where("class", "==", currentStudent.course));
+                    const testsSnapshot = await getDocs(testsQuery);
+                    const tests = testsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
+                    // 2. Fetch all results submitted by this student
+                    const resultsQuery = query(collection(db, "testResults"), where("studentId", "==", currentStudent.docId));
+                    const resultsSnapshot = await getDocs(resultsQuery);
+                    const completedTests = new Map(resultsSnapshot.docs.map(doc => [doc.data().testId, doc.data()]));
+
+                    if (tests.length === 0) {
+                        container.innerHTML = `<p data-lang-key="assigned_tests_no_data">${translations[currentLanguage].assigned_tests_no_data}</p>`;
+                        return;
+                    }
+                    
+                    container.innerHTML = '';
+                    tests.sort((a, b) => (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0));
+
+                    tests.forEach(test => {
+                        const date = test.createdAt?.toDate().toLocaleDateString() || 'N/A';
+                        const el = document.createElement('div');
+                        el.className = 'bg-white p-4 rounded-lg shadow flex justify-between items-center';
+                        
+                        let buttonHTML = '';
+                        if (completedTests.has(test.id)) {
+                            // Student has taken the test
+                            const result = completedTests.get(test.id);
+                            buttonHTML = `<button class="view-results-btn bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600" data-testid="${test.id}" data-score="${result.score}">${translations[currentLanguage].assigned_tests_view_results_btn}</button>`;
+                        } else {
+                            // Student has not taken the test
+                            buttonHTML = `<button class="take-test-btn bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700" data-testid="${test.id}" data-lang-key="assigned_tests_take_btn">${translations[currentLanguage].assigned_tests_take_btn}</button>`;
+                        }
+
+                        el.innerHTML = `
+                            <div>
+                                <h4 class="text-lg font-semibold text-indigo-700">${test.title}</h4>
+                                <p class="text-sm text-gray-500">Posted on: ${date}</p>
+                            </div>
+                            ${buttonHTML}
+                        `;
+                        container.appendChild(el);
+                    });
+
+                    document.querySelectorAll('.take-test-btn').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            const testId = btn.dataset.testid;
+                            const selectedTest = tests.find(t => t.id === testId);
+                            startStudentTest(selectedTest);
+                        });
+                    });
+                    
+                    document.querySelectorAll('.view-results-btn').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            const testId = btn.dataset.testid;
+                            const score = btn.dataset.score;
+                            const selectedTest = tests.find(t => t.id === testId);
+                            const resultData = completedTests.get(testId);
+                            displayResults(score.split('/')[0], resultData.userAnswers, 'assigned-tests-container', 'student-test-view', selectedTest.questions, true);
+                        });
+                    });
+
+                } catch (err) {
+                    console.error("Error fetching assigned tests:", err);
+                    container.innerHTML = `<p class="text-red-500">Could not load tests.</p>`;
+                }
+            }
+
+            function startStudentTest(test) {
+                document.getElementById('assigned-tests-container').classList.add('hidden');
+                const testView = document.getElementById('student-test-view');
+                testView.classList.remove('hidden');
+                currentTestQuestions = test.questions;
+                renderTest(test.questions, 'student-test-view', 'student-test-form', test);
+            }
+
+            // --- GENERIC TEST RENDERING & SUBMISSION ---
+            async function generatePracticeTest() {
+                const topic = document.getElementById('test-topic').value;
+                const errorEl = document.getElementById('ai-test-error');
                 if (!topic) {
                     errorEl.textContent = translations[currentLanguage].ai_test_error_no_topic;
                     errorEl.classList.remove('hidden');
                     return;
                 }
+                const prompt = `Generate a 5-question multiple-choice quiz on the topic of '${topic}' for a Class ${currentStudent.course} student. Provide the output as a JSON array. Each object in the array should have the following keys: 'question' (a string), 'options' (an array of 4 strings), 'answer' (the correct option string), and 'explanation' (a brief explanation for the answer).`;
+                const questions = await fetchAIGeneratedTest(prompt, 'ai-test-loader', 'ai-test-setup', 'ai-test-error');
+                if (questions) {
+                    currentTestQuestions = questions;
+                    renderTest(questions, 'ai-test-container');
+                }
+            }
+
+            function renderTest(questions, containerId, formId = 'ai-test-form', testData = null) {
+                const testContainer = document.getElementById(containerId);
+                testContainer.innerHTML = '';
+
+                let form = `<form id="${formId}">`;
+                if(testData) {
+                    form += `<h3 class="text-2xl font-bold mb-4">${testData.title}</h3>`;
+                }
+                questions.forEach((q, index) => {
+                    form += `<div class="mb-6 p-4 border rounded-lg bg-white">
+                        <p class="font-semibold mb-3">${index + 1}. ${q.question}</p>
+                        <div class="space-y-2">`;
+                    q.options.forEach(option => {
+                        form += `<label class="flex items-center p-2 rounded-md hover:bg-gray-100 cursor-pointer">
+                            <input type="radio" name="question-${index}" value="${option.replace(/"/g, '&quot;')}" class="mr-3" required>
+                            <span>${option}</span>
+                        </label>`;
+                    });
+                    form += `</div></div>`;
+                });
+                form += `<button type="submit" class="w-full sm:w-auto bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-700" data-lang-key="ai_test_submit_btn">${translations[currentLanguage].ai_test_submit_btn}</button></form>`;
+                
+                testContainer.innerHTML = form;
+                testContainer.classList.remove('hidden');
+                
+                document.getElementById(formId).addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    submitTest(formId, containerId, testData ? 'student-test-view' : 'ai-test-results-container', testData);
+                });
+            }
+
+            async function submitTest(formId, testContainerId, resultsContainerId, testData) {
+                const form = document.getElementById(formId);
+                const formData = new FormData(form);
+                let score = 0;
+                const userAnswers = [];
+
+                for (let i = 0; i < currentTestQuestions.length; i++) {
+                    const userAnswer = formData.get(`question-${i}`);
+                    userAnswers.push(userAnswer);
+                    if (userAnswer === currentTestQuestions[i].answer) {
+                        score++;
+                    }
+                }
+
+                if (testData) {
+                    const resultData = {
+                        testId: testData.id,
+                        testTitle: testData.title,
+                        studentId: currentStudent.docId,
+                        studentName: currentStudent.name,
+                        studentIdentifier: currentStudent.studentId,
+                        score: `${score}/${currentTestQuestions.length}`,
+                        userAnswers: userAnswers, // Storing user answers
+                        submittedAt: Timestamp.now()
+                    };
+                    try {
+                        await addDoc(collection(db, "testResults"), resultData);
+                    } catch (err) {
+                        console.error("Error saving test result:", err);
+                    }
+                }
+
+                displayResults(score, userAnswers, testContainerId, resultsContainerId, currentTestQuestions);
+            }
+
+            function displayResults(score, userAnswers, testContainerId, resultsContainerId, questions, isReview = false) {
+                document.getElementById(testContainerId).classList.add('hidden');
+                const resultsContainer = document.getElementById(resultsContainerId);
+                resultsContainer.innerHTML = ''; 
+
+                let resultsHTML = `<div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-2xl font-bold mb-4" data-lang-key="ai_test_results_title">${translations[currentLanguage].ai_test_results_title}</h3>
+                    <p class="text-lg font-semibold mb-6"><span data-lang-key="ai_test_score">${translations[currentLanguage].ai_test_score}</span> ${score} / ${questions.length}</p>`;
+
+                questions.forEach((q, index) => {
+                    resultsHTML += `<div class="mb-4 p-4 border rounded-lg">
+                        <p class="font-semibold mb-2">${index + 1}. ${q.question}</p>`;
+                    const userAnswer = userAnswers[index];
+                    const correctAnswer = q.answer;
+                    q.options.forEach(option => {
+                        let optionClass = '';
+                        let textSuffix = '';
+                        if (option === correctAnswer) {
+                            optionClass = 'bg-green-100 text-green-800 font-bold';
+                            textSuffix = ` (Correct Answer)`;
+                        } else if (option === userAnswer && !isReview) {
+                            optionClass = 'bg-red-100 text-red-800';
+                            textSuffix = ' (Your Answer)';
+                        }
+                        resultsHTML += `<p class="p-2 rounded-md ${optionClass}">${option}${textSuffix}</p>`;
+                    });
+                     resultsHTML += `<p class="text-sm text-gray-600 mt-2"><strong>Explanation:</strong> ${q.explanation || 'N/A'}</p>`;
+                    resultsHTML += `</div>`;
+                });
+                
+                if(resultsContainerId === 'student-test-view') {
+                    resultsHTML += `<button id="back-to-tests-btn" class="mt-6 w-full sm:w-auto bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700">Back to Test List</button>`;
+                } else {
+                    resultsHTML += `<button id="take-another-practice-btn" class="mt-6 w-full sm:w-auto bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700">Take Another Practice Test</button>`;
+                }
+
+                resultsHTML += `</div>`;
+                resultsContainer.innerHTML = resultsHTML;
+                resultsContainer.classList.remove('hidden');
+
+                if(document.getElementById('back-to-tests-btn')) {
+                    document.getElementById('back-to-tests-btn').addEventListener('click', () => {
+                        resultsContainer.classList.add('hidden');
+                        document.getElementById('assigned-tests-container').classList.remove('hidden');
+                        renderAssignedTests(); // Re-render to show updated button states
+                    });
+                }
+                if(document.getElementById('take-another-practice-btn')) {
+                    document.getElementById('take-another-practice-btn').addEventListener('click', () => {
+                        resultsContainer.classList.add('hidden');
+                        document.getElementById('ai-test-setup').classList.remove('hidden');
+                        document.getElementById('test-topic').value = '';
+                    });
+                }
+            }
+            
+            // --- GEMINI API HELPER ---
+            async function fetchAIGeneratedTest(prompt, loaderId, setupId, errorId) {
+                const loader = document.getElementById(loaderId);
+                const setupDiv = document.getElementById(setupId);
+                const errorEl = document.getElementById(errorId);
 
                 loader.classList.remove('hidden');
                 setupDiv.classList.add('hidden');
-                testContainer.classList.add('hidden');
-                resultsContainer.classList.add('hidden');
                 errorEl.classList.add('hidden');
 
-                const prompt = `Generate a 5-question multiple-choice quiz on the topic of '${topic}' for a Class ${currentStudent.course} student. Provide the output as a JSON array. Each object in the array should have the following keys: 'question' (a string), 'options' (an array of 4 strings), and 'answer' (the correct option string).`;
-                
                 const payload = {
                     contents: [{ role: "user", parts: [{ text: prompt }] }],
                     generationConfig: {
@@ -1428,9 +1597,10 @@ I've added the necessary HTML and JavaScript code to implement the badge, track 
                                 properties: {
                                     "question": { "type": "STRING" },
                                     "options": { "type": "ARRAY", "items": { "type": "STRING" } },
-                                    "answer": { "type": "STRING" }
+                                    "answer": { "type": "STRING" },
+                                    "explanation": { "type": "STRING" }
                                 },
-                                required: ["question", "options", "answer"]
+                                required: ["question", "options", "answer", "explanation"]
                             }
                         }
                     }
@@ -1446,163 +1616,25 @@ I've added the necessary HTML and JavaScript code to implement the badge, track 
                         body: JSON.stringify(payload)
                     });
 
-                    if (!response.ok) {
-                        throw new Error(`API error: ${response.statusText}`);
-                    }
+                    if (!response.ok) throw new Error(`API error: ${response.statusText}`);
                     
                     const result = await response.json();
                     
                     if (result.candidates && result.candidates.length > 0) {
-                        const jsonText = result.candidates[0].content.parts[0].text;
-                        currentTestQuestions = JSON.parse(jsonText);
-                        renderTest(currentTestQuestions);
+                        return JSON.parse(result.candidates[0].content.parts[0].text);
                     } else {
                         throw new Error("No content received from AI.");
                     }
-
                 } catch (err) {
                     console.error("AI Test Generation Error:", err);
                     errorEl.textContent = translations[currentLanguage].ai_test_error_general;
                     errorEl.classList.remove('hidden');
                     setupDiv.classList.remove('hidden');
+                    return null;
                 } finally {
                     loader.classList.add('hidden');
                 }
             }
-
-            function renderTest(questions) {
-                const testContainer = document.getElementById('ai-test-container');
-                testContainer.innerHTML = ''; // Clear previous test
-
-                const form = document.createElement('form');
-                form.id = 'ai-test-form';
-
-                questions.forEach((q, index) => {
-                    const questionDiv = document.createElement('div');
-                    questionDiv.className = 'mb-6 p-4 border rounded-lg';
-                    
-                    const questionP = document.createElement('p');
-                    questionP.className = 'font-semibold mb-3';
-                    questionP.textContent = `${index + 1}. ${q.question}`;
-                    questionDiv.appendChild(questionP);
-
-                    const optionsDiv = document.createElement('div');
-                    optionsDiv.className = 'space-y-2';
-
-                    q.options.forEach((option, optIndex) => {
-                        const optionLabel = document.createElement('label');
-                        optionLabel.className = 'flex items-center p-2 rounded-md hover:bg-gray-100 cursor-pointer';
-                        
-                        const radioInput = document.createElement('input');
-                        radioInput.type = 'radio';
-                        radioInput.name = `question-${index}`;
-                        radioInput.value = option;
-                        radioInput.className = 'mr-3';
-                        radioInput.required = true;
-
-                        optionLabel.appendChild(radioInput);
-                        optionLabel.append(option); // Append text node
-                        optionsDiv.appendChild(optionLabel);
-                    });
-
-                    questionDiv.appendChild(optionsDiv);
-                    form.appendChild(questionDiv);
-                });
-
-                const submitButton = document.createElement('button');
-                submitButton.type = 'submit';
-                submitButton.id = 'submit-test-btn';
-                submitButton.className = 'w-full sm:w-auto bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-700';
-                submitButton.innerHTML = `<span data-lang-key="ai_test_submit_btn">${translations[currentLanguage].ai_test_submit_btn}</span>`;
-                form.appendChild(submitButton);
-
-                form.addEventListener('submit', (e) => {
-                    e.preventDefault();
-                    submitTest();
-                });
-
-                testContainer.appendChild(form);
-                testContainer.classList.remove('hidden');
-            }
-
-            function submitTest() {
-                const form = document.getElementById('ai-test-form');
-                const formData = new FormData(form);
-                let score = 0;
-                const userAnswers = [];
-
-                for (let i = 0; i < currentTestQuestions.length; i++) {
-                    const userAnswer = formData.get(`question-${i}`);
-                    userAnswers.push(userAnswer);
-                    if (userAnswer === currentTestQuestions[i].answer) {
-                        score++;
-                    }
-                }
-                displayResults(score, userAnswers);
-            }
-
-            function displayResults(score, userAnswers) {
-                const testContainer = document.getElementById('ai-test-container');
-                const resultsContainer = document.getElementById('ai-test-results-container');
-                const setupDiv = document.getElementById('ai-test-setup');
-
-                testContainer.classList.add('hidden');
-                resultsContainer.innerHTML = ''; // Clear previous results
-
-                const resultsTitle = document.createElement('h3');
-                resultsTitle.className = 'text-2xl font-bold mb-4';
-                resultsTitle.innerHTML = `<span data-lang-key="ai_test_results_title">${translations[currentLanguage].ai_test_results_title}</span>`;
-                resultsContainer.appendChild(resultsTitle);
-
-                const scoreP = document.createElement('p');
-                scoreP.className = 'text-lg font-semibold mb-6';
-                scoreP.innerHTML = `<span data-lang-key="ai_test_score">${translations[currentLanguage].ai_test_score}</span> ${score} / ${currentTestQuestions.length}`;
-                resultsContainer.appendChild(scoreP);
-
-                currentTestQuestions.forEach((q, index) => {
-                    const questionDiv = document.createElement('div');
-                    questionDiv.className = 'mb-4 p-4 border rounded-lg';
-                    
-                    const questionP = document.createElement('p');
-                    questionP.className = 'font-semibold mb-2';
-                    questionP.textContent = `${index + 1}. ${q.question}`;
-                    questionDiv.appendChild(questionP);
-
-                    const userAnswer = userAnswers[index];
-                    const correctAnswer = q.answer;
-
-                    q.options.forEach(option => {
-                        const optionP = document.createElement('p');
-                        optionP.className = 'p-2 rounded-md';
-                        let text = option;
-
-                        if (option === correctAnswer) {
-                            optionP.classList.add('bg-green-100', 'text-green-800', 'font-bold');
-                            text += ' (Correct Answer)';
-                        } else if (option === userAnswer) {
-                            optionP.classList.add('bg-red-100', 'text-red-800');
-                            text += ' (Your Answer)';
-                        }
-                        optionP.textContent = text;
-                        questionDiv.appendChild(optionP);
-                    });
-                    resultsContainer.appendChild(questionDiv);
-                });
-                
-                const takeAnotherTestBtn = document.createElement('button');
-                takeAnotherTestBtn.className = 'mt-6 w-full sm:w-auto bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700';
-                takeAnotherTestBtn.textContent = 'Take Another Test';
-                takeAnotherTestBtn.onclick = () => {
-                    resultsContainer.classList.add('hidden');
-                    setupDiv.classList.remove('hidden');
-                    document.getElementById('test-topic').value = '';
-                };
-                resultsContainer.appendChild(takeAnotherTestBtn);
-
-
-                resultsContainer.classList.remove('hidden');
-            }
-
 
             // --- Initialize App ---
             renderLanguage('en'); // Set initial language
@@ -1612,4 +1644,3 @@ I've added the necessary HTML and JavaScript code to implement the badge, track 
     </script>
 </body>
 </html>
-```
