@@ -1022,6 +1022,15 @@
                 }, { passive: true });
 
                 function handleSwipe() {
+                    // Check if a test or its results are currently displayed. If so, disable swipe.
+                    const isTestActive = !document.getElementById('student-test-view').classList.contains('hidden') ||
+                                         !document.getElementById('ai-test-container').classList.contains('hidden') ||
+                                         !document.getElementById('ai-test-results-container').classList.contains('hidden');
+
+                    if (isTestActive) {
+                        return; // Exit the function, preventing the swipe navigation
+                    }
+
                     const swipeThreshold = 50; // Minimum distance for a swipe
                     const currentTabEl = document.querySelector('.dashboard-tab-btn.border-indigo-500');
                     const currentTabId = currentTabEl.dataset.tab;
